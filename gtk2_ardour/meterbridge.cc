@@ -36,6 +36,7 @@
 
 #include "ardour/debug.h"
 #include "ardour/midi_track.h"
+#include "ardour/presentation_info.h"
 #include "ardour/route_group.h"
 #include "ardour/session.h"
 
@@ -136,6 +137,7 @@ Meterbridge::Meterbridge ()
 	signal_configure_event().connect (sigc::mem_fun (*ARDOUR_UI::instance(), &ARDOUR_UI::configure_handler));
 	MeterStrip::CatchDeletion.connect (*this, invalidator (*this), boost::bind (&Meterbridge::remove_strip, this, _1), gui_context());
 	MeterStrip::MetricChanged.connect (*this, invalidator (*this), boost::bind(&Meterbridge::resync_order, this), gui_context());
+	PresentationInfo::Change.connect (*this, invalidator (*this), boost::bind(&Meterbridge::resync_order, this), gui_context());
 	MeterStrip::ConfigurationChanged.connect (*this, invalidator (*this), boost::bind(&Meterbridge::queue_resize, this), gui_context());
 
 	/* work around ScrolledWindowViewport alignment mess Part one */
