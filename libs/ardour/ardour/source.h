@@ -68,6 +68,9 @@ class LIBARDOUR_API Source : public SessionObject
 	virtual samplecnt_t length (samplepos_t pos) const = 0;
 	virtual void       update_length (samplecnt_t cnt) = 0;
 
+	void                 set_take_id (std::string id) { _take_id =id; }
+	const std::string&   take_id ()        const { return _take_id; }
+
 	virtual samplepos_t natural_position() const { return 0; }
 
 	void mark_for_remove();
@@ -119,6 +122,7 @@ class LIBARDOUR_API Source : public SessionObject
 	DataType            _type;
 	Flag                _flags;
 	time_t              _timestamp;
+	std::string         _take_id;
 	samplepos_t          _timeline_position;
 	bool                _analysed;
         mutable Glib::Threads::Mutex _lock;
