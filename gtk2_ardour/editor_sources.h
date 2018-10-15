@@ -45,8 +45,6 @@ public:
 
 	void clear ();
 
-	void toggle_full ();
-	void toggle_show_auto_regions ();
 	void reset_sort_direction (bool);
 	void reset_sort_type (Editing::RegionListSortType, bool);
 	void selection_mapover (sigc::slot<void,boost::shared_ptr<ARDOUR::Region> >);
@@ -87,7 +85,7 @@ private:
 	struct Columns : public Gtk::TreeModel::ColumnRecord {
 		Columns () {
 			add (name);
-			add (region);
+			add (source);
 			add (color_);
 			add (position);
 			add (end);
@@ -105,7 +103,7 @@ private:
 		}
 
 		Gtk::TreeModelColumn<std::string> name;
-		Gtk::TreeModelColumn<boost::shared_ptr<ARDOUR::Region> > region;
+		Gtk::TreeModelColumn<boost::shared_ptr<ARDOUR::Source> > source;
 		Gtk::TreeModelColumn<Gdk::Color> color_;
 		Gtk::TreeModelColumn<std::string> position;
 		Gtk::TreeModelColumn<std::string> end;
@@ -141,10 +139,6 @@ private:
 	void name_editing_started (Gtk::CellEditable*, const Glib::ustring&);
 
 	void name_edit (const std::string&, const std::string&);
-	void locked_changed (std::string const &);
-	void glued_changed (std::string const &);
-	void muted_changed (std::string const &);
-	void opaque_changed (std::string const &);
 
 	bool key_press (GdkEventKey *);
 	bool button_press (GdkEventButton *);
@@ -160,20 +154,11 @@ private:
 
 	void format_position (ARDOUR::samplepos_t pos, char* buf, size_t bufsize, bool onoff = true);
 
-	void add_region (boost::shared_ptr<ARDOUR::Region>);
+	void add_source (boost::shared_ptr<ARDOUR::Source>);
+	void remove_source (boost::shared_ptr<ARDOUR::Source>);
 
 	void populate_row (boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::Row const &, PBD::PropertyChange const &);
 	void populate_row_used (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_position (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_end (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_sync (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_fade_in (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used, boost::shared_ptr<ARDOUR::AudioRegion>);
-	void populate_row_fade_out (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used, boost::shared_ptr<ARDOUR::AudioRegion>);
-	void populate_row_locked (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_muted (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_glued (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_opaque (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_length (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 	void populate_row_name (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 	void populate_row_source (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 
@@ -187,13 +172,10 @@ private:
 		);
 
 	Glib::RefPtr<Gtk::RadioAction> sort_type_action (Editing::RegionListSortType) const;
-	void set_full (bool);
 
 	Glib::RefPtr<Gtk::Action> hide_action () const;
 	Glib::RefPtr<Gtk::Action> show_action () const;
 	Glib::RefPtr<Gtk::Action> remove_unused_regions_action () const;
-	Glib::RefPtr<Gtk::ToggleAction> toggle_full_action () const;
-	Glib::RefPtr<Gtk::ToggleAction> toggle_show_auto_regions_action () const;
 
 	Gtk::Menu* _menu;
 	Gtk::ScrolledWindow _scroller;
@@ -203,7 +185,6 @@ private:
 
 	Glib::RefPtr<Gtk::TreeStore> _model;
 
-	bool _show_automatic_regions;
 	bool ignore_region_list_selection_change;
 	bool ignore_selected_region_change;
 	bool _no_redisplay;
@@ -218,13 +199,13 @@ private:
 	RegionRowMap region_row_map;
 	RegionSourceMap parent_regions_sources_map;
 
-	PBD::ScopedConnection region_property_connection;
-	PBD::ScopedConnection check_new_region_connection;
+//	PBD::ScopedConnection region_property_connection;
+
+	PBD::ScopedConnection source_added_connection;
+	PBD::ScopedConnection source_removed_connection;
 
 	PBD::ScopedConnection editor_freeze_connection;
 	PBD::ScopedConnection editor_thaw_connection;
-
-	bool expanded;
 
 	Selection* _selection;
 
