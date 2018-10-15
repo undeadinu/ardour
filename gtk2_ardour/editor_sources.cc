@@ -81,13 +81,12 @@ EditorSources::EditorSources (Editor* e)
 	, _menu (0)
 	, ignore_region_list_selection_change (false)
 	, ignore_selected_region_change (false)
-	, _no_redisplay (false)
 	, _sort_type ((Editing::RegionListSortType) 0)
 	, _selection (0)
 {
 	_display.set_size_request (100, -1);
 	_display.set_rules_hint (true);
-	_display.set_name ("EditGroupList");
+	_display.set_name ("SourcesList");
 	_display.set_fixed_height_mode (true);
 
 	/* Try to prevent single mouse presses from initiating edits.
@@ -100,74 +99,52 @@ EditorSources::EditorSources (Editor* e)
 	_model->set_sort_column (0, SORT_ASCENDING);
 
 	/* column widths */
-	int bbt_width, check_width, height;
-
+	int bbt_width, date_width, count_width, height;
+	
 	Glib::RefPtr<Pango::Layout> layout = _display.create_pango_layout (X_("000|000|000"));
 	Gtkmm2ext::get_pixel_size (layout, bbt_width, height);
 
-	check_width = 20;
+	Glib::RefPtr<Pango::Layout> layout2 = _display.create_pango_layout (X_("2018-10-14 12:12:30"));
+	Gtkmm2ext::get_pixel_size (layout2, date_width, height);
+
+	Glib::RefPtr<Pango::Layout> layout3 = _display.create_pango_layout (X_("0000"));
+	Gtkmm2ext::get_pixel_size (layout3, count_width, height);
 
 	TreeViewColumn* col_name = manage (new TreeViewColumn ("", _columns.name));
-	col_name->set_fixed_width (120);
+	col_name->set_fixed_width (bbt_width*2);
 	col_name->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_position = manage (new TreeViewColumn ("", _columns.position));
-	col_position->set_fixed_width (bbt_width);
-	col_position->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_end = manage (new TreeViewColumn ("", _columns.end));
-	col_end->set_fixed_width (bbt_width);
-	col_end->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_length = manage (new TreeViewColumn ("", _columns.length));
-	col_length->set_fixed_width (bbt_width);
-	col_length->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_sync = manage (new TreeViewColumn ("", _columns.sync));
-	col_sync->set_fixed_width (bbt_width);
-	col_sync->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_fadein = manage (new TreeViewColumn ("", _columns.fadein));
-	col_fadein->set_fixed_width (bbt_width);
-	col_fadein->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_fadeout = manage (new TreeViewColumn ("", _columns.fadeout));
-	col_fadeout->set_fixed_width (bbt_width);
-	col_fadeout->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_locked = manage (new TreeViewColumn ("", _columns.locked));
-	col_locked->set_fixed_width (check_width);
-	col_locked->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_glued = manage (new TreeViewColumn ("", _columns.glued));
-	col_glued->set_fixed_width (check_width);
-	col_glued->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_muted = manage (new TreeViewColumn ("", _columns.muted));
-	col_muted->set_fixed_width (check_width);
-	col_muted->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_opaque = manage (new TreeViewColumn ("", _columns.opaque));
-	col_opaque->set_fixed_width (check_width);
-	col_opaque->set_sizing (TREE_VIEW_COLUMN_FIXED);
+
+	TreeViewColumn* col_nat_pos = manage (new TreeViewColumn ("", _columns.natural_pos));
+	col_nat_pos->set_fixed_width (bbt_width);
+	col_nat_pos->set_sizing (TREE_VIEW_COLUMN_FIXED);
+
+	TreeViewColumn* col_take_id = manage (new TreeViewColumn ("", _columns.take_id));
+	col_take_id->set_fixed_width (date_width);
+	col_take_id->set_sizing (TREE_VIEW_COLUMN_FIXED);
+
+	TreeViewColumn* col_use_count = manage (new TreeViewColumn ("", _columns.use_count));
+	col_use_count->set_fixed_width (count_width);
+	col_use_count->set_sizing (TREE_VIEW_COLUMN_FIXED);
+
+	TreeViewColumn* col_path = manage (new TreeViewColumn ("", _columns.path));
+	col_path->set_fixed_width (bbt_width);
+	col_path->set_sizing (TREE_VIEW_COLUMN_FIXED);
 
 	_display.append_column (*col_name);
-	_display.append_column (*col_position);
-	_display.append_column (*col_end);
-	_display.append_column (*col_length);
-	_display.append_column (*col_sync);
-	_display.append_column (*col_fadein);
-	_display.append_column (*col_fadeout);
-	_display.append_column (*col_locked);
-	_display.append_column (*col_glued);
-	_display.append_column (*col_muted);
-	_display.append_column (*col_opaque);
+	_display.append_column (*col_take_id);
+	_display.append_column (*col_use_count);
+	_display.append_column (*col_nat_pos);
+	_display.append_column (*col_path);
 
 	TreeViewColumn* col;
 	Gtk::Label* l;
 
 	ColumnInfo ci[] = {
 		{ 0,   _("Source"),    _("Source name, with number of channels in []'s") },
-		{ 1,   _("Position"),  _("Position of start of region") },
-		{ 2,   _("End"),       _("Position of end of region") },
-		{ 3,   _("Length"),    _("Length of the region") },
-		{ 4,   _("Sync"),      _("Position of region sync point, relative to start of the region") },
-		{ 5,   _("Fade In"),   _("Length of region fade-in (units: secondary clock), () if disabled") },
-		{ 6,   _("Fade Out"),  _("Length of region fade-out (units: secondary clock), () if disabled") },
-		{ 7,  S_("Lock|L"),    _("Region position locked?") },
-		{ 8,  S_("Gain|G"),    _("Region position glued to Bars|Beats time?") },
-		{ 9,  S_("Mute|M"),    _("Region muted?") },
-		{ 10, S_("Opaque|O"),  _("Region opaque (blocks regions below it from being heard)?") },
+		{ 1,   _("Take ID"),   _("Take ID") },
+		{ 2,   _("Unused"),    _("Source is not used anywhere in this snapshot") },
+		{ 3,   _("Nat Pos"),   _("Natural Position of the file on timeline") },
+		{ 4,   _("Path"),      _("Path (folder) of the file locationlosition of end of region") },
 		{ -1, 0, 0 }
 	};
 
@@ -177,19 +154,11 @@ EditorSources::EditorSources (Editor* e)
 		set_tooltip (*l, ci[i].tooltip);
 		col->set_widget (*l);
 		l->show ();
-
-		if (ci[i].index > 6) {
-			col->set_expand (false);
-			col->set_alignment (ALIGN_CENTER);
-		}
 	}
 	_display.set_model (_model);
 
 	_display.set_headers_visible (true);
 	_display.set_rules_hint ();
-
-	/* show path as the row tooltip */
-	_display.set_tooltip_column (14); /* path */
 
 	CellRendererText* source_name_cell = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (0));
 	source_name_cell->property_editable() = true;
@@ -198,35 +167,18 @@ EditorSources::EditorSources (Editor* e)
 
 	_display.get_selection()->set_select_function (sigc::mem_fun (*this, &EditorSources::selection_filter));
 
+	//set the color of the name field
 	TreeViewColumn* tv_col = _display.get_column(0);
 	CellRendererText* renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (0));
 	tv_col->add_attribute(renderer->property_text(), _columns.name);
 	tv_col->add_attribute(renderer->property_foreground_gdk(), _columns.color_);
+//	tv_col->set_expand (true);
+
+	//the PATH field should expand when the pane is opened wider
+	tv_col = _display.get_column(4);
+	renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (4));
+	tv_col->add_attribute(renderer->property_text(), _columns.path);
 	tv_col->set_expand (true);
-
-	CellRendererToggle* locked_cell = dynamic_cast<CellRendererToggle*> (_display.get_column_cell_renderer (7));
-	locked_cell->property_activatable() = true;
-
-	TreeViewColumn* locked_col = _display.get_column (7);
-	locked_col->add_attribute (locked_cell->property_visible(), _columns.property_toggles_visible);
-
-	CellRendererToggle* glued_cell = dynamic_cast<CellRendererToggle*> (_display.get_column_cell_renderer (8));
-	glued_cell->property_activatable() = true;
-
-	TreeViewColumn* glued_col = _display.get_column (8);
-	glued_col->add_attribute (glued_cell->property_visible(), _columns.property_toggles_visible);
-
-	CellRendererToggle* muted_cell = dynamic_cast<CellRendererToggle*> (_display.get_column_cell_renderer (9));
-	muted_cell->property_activatable() = true;
-
-	TreeViewColumn* muted_col = _display.get_column (9);
-	muted_col->add_attribute (muted_cell->property_visible(), _columns.property_toggles_visible);
-
-	CellRendererToggle* opaque_cell = dynamic_cast<CellRendererToggle*> (_display.get_column_cell_renderer (10));
-	opaque_cell->property_activatable() = true;
-
-	TreeViewColumn* opaque_col = _display.get_column (10);
-	opaque_col->add_attribute (opaque_cell->property_visible(), _columns.property_toggles_visible);
 
 	_display.get_selection()->set_mode (SELECTION_MULTIPLE);
 	_display.add_object_drag (_columns.source.index(), "sources");
@@ -260,7 +212,6 @@ EditorSources::EditorSources (Editor* e)
 
 	//ARDOUR_UI::instance()->secondary_clock.mode_changed.connect (sigc::mem_fun(*this, &Editor::redisplay_regions));
 	ARDOUR_UI::instance()->primary_clock->mode_changed.connect (sigc::mem_fun(*this, &EditorSources::update_all_rows));
-//	ARDOUR::Region::RegionPropertyChanged.connect (region_property_connection, MISSING_INVALIDATOR, boost::bind (&EditorSources::region_changed, this, _1, _2), gui_context());
 
 	e->EditorFreeze.connect (editor_freeze_connection, MISSING_INVALIDATOR, boost::bind (&EditorSources::freeze_tree_model, this), gui_context());
 	e->EditorThaw.connect (editor_thaw_connection, MISSING_INVALIDATOR, boost::bind (&EditorSources::thaw_tree_model, this), gui_context());
@@ -335,36 +286,33 @@ EditorSources::set_session (ARDOUR::Session* s)
 		//register to get new sources that are recorded/imported
 		s->SourceAdded.connect (source_added_connection, MISSING_INVALIDATOR, boost::bind (&EditorSources::add_source, this, _1), gui_context());
 		s->SourceRemoved.connect (source_removed_connection, MISSING_INVALIDATOR, boost::bind (&EditorSources::remove_source, this, _1), gui_context());
+
+		//register for source property changes ( some things like take_id aren't immediately available at construction )
+		ARDOUR::Source::SourcePropertyChanged.connect (source_property_connection, MISSING_INVALIDATOR, boost::bind (&EditorSources::source_changed, this, _1), gui_context());
 	} else {
 		clear();	
 	}
-	
-	//redisplay ();
 }
 
 void
 EditorSources::remove_source (boost::shared_ptr<ARDOUR::Source> source)
-{	TreeModel::iterator i;
+{
+	TreeModel::iterator i;
 	TreeModel::Children rows = _model->children();
 	for (i = rows.begin(); i != rows.end(); ++i) {
 		boost::shared_ptr<ARDOUR::Source> ss = (*i)[_columns.source];
 		if (source == ss) {
-			printf("remove a source here\n");  //NOTE:  currently this ONLY happens during remove-last-capture
+			_model->erase(i);
+			break;
 		}
 	}
 }
 
 void
-EditorSources::add_source (boost::shared_ptr<ARDOUR::Source> source)
+EditorSources::populate_row (TreeModel::Row row, boost::shared_ptr<ARDOUR::Source> source)
 {
-	if (!source || !_session) {
-		return;
-	}
-
 	string str;
 	Gdk::Color c;
-
-	TreeModel::Row row = *(_model->append());
 
 	bool missing_source = boost::dynamic_pointer_cast<SilentFileSource>(source) != NULL;
 	if (missing_source) {
@@ -393,7 +341,6 @@ EditorSources::add_source (boost::shared_ptr<ARDOUR::Source> source)
 		str = source->name();
 	}
 
-//	populate_row_name (source, row);
 	row[_columns.name] = str;
 	row[_columns.source] = source;
 
@@ -409,7 +356,36 @@ EditorSources::add_source (boost::shared_ptr<ARDOUR::Source> source)
 		}
 	}
 
-//	region_row_map.insert(pair<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::RowReference>(source, TreeRowReference(_model, TreePath (row))) );
+	row[_columns.take_id] = source->take_id();
+
+	//Use-Count: How many times the source appears in a region
+	char buf[16];
+	if (source->use_count() > 0) {
+		sprintf(buf, " "  );
+	} else {
+		sprintf(buf, "*" );
+	}
+	row[_columns.use_count] = buf;
+
+	//Natural Position
+	//note:  this format changes to follow master clock.  see  populate_row_position
+	snprintf(buf, 16, "--" );
+	if (source->natural_position() > 0) {
+		format_position (source->natural_position(), buf, sizeof (buf));
+	}
+	row[_columns.natural_pos] = buf;
+}
+
+void
+EditorSources::add_source (boost::shared_ptr<ARDOUR::Source> source)
+{
+	if (!source || !_session ) {
+		return;
+	}
+
+	TreeModel::Row row = *(_model->append());
+
+	populate_row (row, source);
 }
 
 
@@ -441,77 +417,16 @@ EditorSources::remove_unused_regions ()
 }
 
 void
-EditorSources::region_changed (boost::shared_ptr<Region> r, const PropertyChange& what_changed)
+EditorSources::source_changed (boost::shared_ptr<ARDOUR::Source> source)
 {
-/*
- * 	//maybe update the grid here
-	PropertyChange grid_interests;
-	grid_interests.add (ARDOUR::Properties::position);
-	grid_interests.add (ARDOUR::Properties::length);
-	grid_interests.add (ARDOUR::Properties::sync_position);
-	if (what_changed.contains (grid_interests)) {
-		_editor->mark_region_boundary_cache_dirty();
-	}
-
-	PropertyChange our_interests;
-
-	our_interests.add (ARDOUR::Properties::name);
-	our_interests.add (ARDOUR::Properties::position);
-	our_interests.add (ARDOUR::Properties::length);
-	our_interests.add (ARDOUR::Properties::start);
-	our_interests.add (ARDOUR::Properties::sync_position);
-	our_interests.add (ARDOUR::Properties::locked);
-	our_interests.add (ARDOUR::Properties::position_lock_style);
-	our_interests.add (ARDOUR::Properties::muted);
-	our_interests.add (ARDOUR::Properties::opaque);
-	our_interests.add (ARDOUR::Properties::fade_in);
-	our_interests.add (ARDOUR::Properties::fade_out);
-	our_interests.add (ARDOUR::Properties::fade_in_active);
-	our_interests.add (ARDOUR::Properties::fade_out_active);
-
-	if (what_changed.contains (our_interests)) {
-		if (last_row != 0) {
-
-			TreeModel::iterator j = _model->get_iter (last_row.get_path());
-			boost::shared_ptr<Region> c = (*j)[_columns.region];
-
-			if (c == r) {
-				populate_row (r, (*j), what_changed);
-
-				if (what_changed.contains (ARDOUR::Properties::hidden)) {
-					redisplay ();
-				}
-
-				return;
-			}
-		}
-
-		RegionRowMap::iterator it;
-
-		it = region_row_map.find (r);
-
-		if (it != region_row_map.end()){
-
-			TreeModel::iterator j = _model->get_iter ((*it).second.get_path());
-			boost::shared_ptr<Region> c = (*j)[_columns.region];
-
-			if (c == r) {
-				populate_row (r, (*j), what_changed);
-
-				if (what_changed.contains (ARDOUR::Properties::hidden)) {
-					redisplay ();
-				}
-
-				return;
-			}
+	TreeModel::iterator i;
+	TreeModel::Children rows = _model->children();
+	for (i = rows.begin(); i != rows.end(); ++i) {
+		boost::shared_ptr<ARDOUR::Source> ss = (*i)[_columns.source];
+		if (source == ss) {
+			populate_row(*i, source);
 		}
 	}
-
-	if (what_changed.contains (ARDOUR::Properties::hidden)) {
-		redisplay ();
-	}
-	* 
-*/
 }
 
 void
@@ -559,41 +474,6 @@ EditorSources::selection_changed ()
 }
 
 void
-EditorSources::redisplay ()
-{
-#if 0
- 	if ( _no_redisplay || !_session ) {
-		return;
-	}
-
-	_display.set_model (Glib::RefPtr<Gtk::TreeStore>(0));
-	_model->clear ();
-	_model->set_sort_column (-2, SORT_ASCENDING); //Disable sorting to gain performance
-
-
-	region_row_map.clear();
-	parent_regions_sources_map.clear();
-
-	//now add everything we have, via a temporary list used to help with sorting
-
-	const RegionFactory::RegionMap& regions (RegionFactory::regions());
-
-	for (RegionFactory::RegionMap::const_iterator i = regions.begin(); i != regions.end(); ++i) {
-
-		if ( i->second->whole_file()) {
-			add_region (i->second);
-		}
-	}
-	
-	_model->set_sort_column (0, SORT_ASCENDING); // renabale sorting
-	_display.set_model (_model);
-
-	tmp_region_list.clear();
-
-#endif
-}
-
-void
 EditorSources::update_row (boost::shared_ptr<Region> region)
 {
 /*	if (!region || !_session) {
@@ -634,8 +514,7 @@ EditorSources::update_all_rows ()
 void
 EditorSources::format_position (samplepos_t pos, char* buf, size_t bufsize, bool onoff)
 {
-/*
- * 	Timecode::BBT_Time bbt;
+	Timecode::BBT_Time bbt;
 	Timecode::Time timecode;
 
 	if (pos < 0) {
@@ -699,7 +578,6 @@ EditorSources::format_position (samplepos_t pos, char* buf, size_t bufsize, bool
 		}
 		break;
 	}
-*/
 }
 
 void
@@ -976,9 +854,6 @@ EditorSources::set_state (const XMLNode & node)
 		RefPtr<RadioAction>::cast_dynamic(act)->set_active ();
 	}
 
-	if (changed) {
-		redisplay ();
-	}
 }
 
 RefPtr<RadioAction>

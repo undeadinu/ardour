@@ -56,17 +56,6 @@ public:
 		return _sort_type;
 	}
 
-	void redisplay ();
-
-	void suspend_redisplay () {
-		_no_redisplay = true;
-	}
-
-	void resume_redisplay () {
-		_no_redisplay = false;
-		redisplay ();
-	}
-
 	void block_change_connection (bool b) {
 		_change_connection.block (b);
 	}
@@ -87,38 +76,19 @@ private:
 			add (name);
 			add (source);
 			add (color_);
-			add (position);
-			add (end);
-			add (length);
-			add (sync);
-			add (fadein);
-			add (fadeout);
-			add (locked);
-			add (glued);
-			add (muted);
-			add (opaque);
-			add (used);
+			add (natural_pos);
 			add (path);
-			add (property_toggles_visible);
+			add (take_id);
+			add (use_count);
 		}
 
 		Gtk::TreeModelColumn<std::string> name;
 		Gtk::TreeModelColumn<boost::shared_ptr<ARDOUR::Source> > source;
 		Gtk::TreeModelColumn<Gdk::Color> color_;
-		Gtk::TreeModelColumn<std::string> position;
-		Gtk::TreeModelColumn<std::string> end;
-		Gtk::TreeModelColumn<std::string> length;
-		Gtk::TreeModelColumn<std::string> sync;
-		Gtk::TreeModelColumn<std::string> fadein;
-		Gtk::TreeModelColumn<std::string> fadeout;
-		Gtk::TreeModelColumn<bool> locked;
-		Gtk::TreeModelColumn<bool> glued;
-		Gtk::TreeModelColumn<bool> muted;
-		Gtk::TreeModelColumn<bool> opaque;
-		Gtk::TreeModelColumn<std::string> used;
+		Gtk::TreeModelColumn<std::string> natural_pos;
 		Gtk::TreeModelColumn<std::string> path;
-		/** used to indicate whether the locked/glued/muted/opaque should be visible or not */
-		Gtk::TreeModelColumn<bool> property_toggles_visible;
+		Gtk::TreeModelColumn<std::string> take_id;
+		Gtk::TreeModelColumn<std::string> use_count;
 	};
 
 	Columns _columns;
@@ -127,7 +97,8 @@ private:
 
 	void freeze_tree_model ();
 	void thaw_tree_model ();
-	void region_changed (boost::shared_ptr<ARDOUR::Region>, PBD::PropertyChange const &);
+	void source_changed (boost::shared_ptr<ARDOUR::Source>);
+	void populate_row (Gtk::TreeModel::Row row, boost::shared_ptr<ARDOUR::Source> source);
 	void selection_changed ();
 
 	sigc::connection _change_connection;
@@ -187,7 +158,6 @@ private:
 
 	bool ignore_region_list_selection_change;
 	bool ignore_selected_region_change;
-	bool _no_redisplay;
 
 	Editing::RegionListSortType _sort_type;
 
@@ -199,7 +169,7 @@ private:
 	RegionRowMap region_row_map;
 	RegionSourceMap parent_regions_sources_map;
 
-//	PBD::ScopedConnection region_property_connection;
+	PBD::ScopedConnection source_property_connection;
 
 	PBD::ScopedConnection source_added_connection;
 	PBD::ScopedConnection source_removed_connection;

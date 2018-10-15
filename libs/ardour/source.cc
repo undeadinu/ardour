@@ -52,6 +52,9 @@ using namespace std;
 using namespace ARDOUR;
 using namespace PBD;
 
+PBD::Signal1<void,boost::shared_ptr<ARDOUR::Source> > Source::SourcePropertyChanged;
+
+
 Source::Source (Session& s, DataType type, const string& name, Flag flags)
 	: SessionObject(s, name)
 	, _type(type)

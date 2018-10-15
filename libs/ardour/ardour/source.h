@@ -118,6 +118,8 @@ class LIBARDOUR_API Source : public SessionObject
 	std::string ancestor_name() { return _ancestor_name.empty() ? name() : _ancestor_name; }
 	void set_ancestor_name(const std::string& name) { _ancestor_name = name; }
 
+	static PBD::Signal1<void,boost::shared_ptr<ARDOUR::Source> > SourcePropertyChanged;
+
   protected:
 	DataType            _type;
 	Flag                _flags;
