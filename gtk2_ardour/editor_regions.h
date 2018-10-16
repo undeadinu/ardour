@@ -158,6 +158,7 @@ private:
 	void format_position (ARDOUR::samplepos_t pos, char* buf, size_t bufsize, bool onoff = true);
 
 	void add_region (boost::shared_ptr<ARDOUR::Region>);
+	void destroy_region (boost::shared_ptr<ARDOUR::Region>);
 
 	void populate_row (boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::Row const &, PBD::PropertyChange const &);
 	void populate_row_used (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);

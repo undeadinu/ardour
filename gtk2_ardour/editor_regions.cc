@@ -31,6 +31,7 @@
 #include "ardour/silentfilesource.h"
 #include "ardour/region_factory.h"
 #include "ardour/session.h"
+#include "ardour/session_playlist.h"
 #include "ardour/profile.h"
 
 #include "gtkmm2ext/treeutils.h"
@@ -341,154 +342,23 @@ EditorRegions::add_region (boost::shared_ptr<Region> region)
 		return;
 	}
 
-	string str;
-	TreeModel::Row row;
-	Gdk::Color c;
-	bool missing_source = boost::dynamic_pointer_cast<SilentFileSource>(region->source()) != NULL;
-	TreeModel::iterator iter;
-
-	if (!_show_automatic_regions && region->automatic()) {
-		return;
-	}
-
-	if (region->hidden()) {
-
-		iter = _model->get_iter ("0");
-		TreeModel::Row parent;
-
-		if (!iter) {
-			parent = *(_model->append());
-			parent[_columns.name] = _("Hidden");
-			boost::shared_ptr<Region> proxy = parent[_columns.region];
-			proxy.reset ();
-		} else {
-			string s = (*iter)[_columns.name];
-			if (s != _("Hidden")) {
-				parent = *(_model->insert(iter));
-				parent[_columns.name] = _("Hidden");
-				boost::shared_ptr<Region> proxy = parent[_columns.region];
-				proxy.reset ();
-			} else {
-				parent = *iter;
-			}
-		}
-
-		iter = _model->append (parent.children());
-		row = *iter;
-
-	} else if (region->whole_file()) {
-
-		TreeModel::iterator i;
-		TreeModel::Children rows = _model->children();
-
-		for (i = rows.begin(); i != rows.end(); ++i) {
-			boost::shared_ptr<Region> rr = (*i)[_columns.region];
-
-			if (rr && region->region_list_equivalent (rr)) {
-				return;
-			}
-		}
-
-		iter = _model->append();
-		row = *iter;
-
-		if (missing_source) {
-			// c.set_rgb(65535,0,0);     // FIXME: error color from style
-			set_color_from_rgba (c, UIConfiguration::instance().color ("region list missing source"));
-
-		} else if (region->automatic()){
-			// c.set_rgb(0,65535,0);     // FIXME: error color from style
-			set_color_from_rgba (c, UIConfiguration::instance().color ("region list automatic"));
-
-		} else {
-			set_color_from_rgba (c, UIConfiguration::instance().color ("region list whole file"));
-		}
-
-		row[_columns.color_] = c;
-
-		if (region->source()->name()[0] == '/') { // external file
-
-			if (region->whole_file()) {
-
-				boost::shared_ptr<AudioFileSource> afs = boost::dynamic_pointer_cast<AudioFileSource>(region->source());
-				str = ".../";
-
-				if (afs) {
-					str = region_name_from_path (afs->path(), region->n_channels() > 1);
-				} else {
-					str += region->source()->name();
-				}
-
-			} else {
-				str = region->name();
-			}
-
-		} else {
-			str = region->name();
-		}
-
-		populate_row_name (region, row);
-		row[_columns.region] = region;
-		row[_columns.property_toggles_visible] = false;
-
-		if (missing_source) {
-			row[_columns.path] = _("(MISSING) ") + Gtkmm2ext::markup_escape_text (region->source()->name());
-
-		} else {
-			boost::shared_ptr<FileSource> fs = boost::dynamic_pointer_cast<FileSource>(region->source());
-			if (fs) {
-				row[_columns.path] = Gtkmm2ext::markup_escape_text (fs->path());
-			} else {
-				row[_columns.path] = Gtkmm2ext::markup_escape_text (region->source()->name());
-			}
-		}
-
-		region_row_map.insert(pair<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::iterator>(region, iter));
-		parent_regions_sources_map.insert(pair<string, Gtk::TreeModel::RowReference>(region->source_string(), TreeRowReference(_model, TreePath (row))) );
-
-		return;
-
-	} else {
-		// find parent node, add as new child
-		TreeModel::iterator i;
-
-		RegionSourceMap::iterator it;
-
-		it = parent_regions_sources_map.find (region->source_string());
-
-		if (it != parent_regions_sources_map.end()){
-
-			TreeModel::iterator j = _model->get_iter ((*it).second.get_path());
-
-			TreeModel::iterator ii;
-			TreeModel::Children subrows = (*j).children();
-
-			/* XXXX: should we be accounting for all regions? */
-			/*
-			for (ii = subrows.begin(); ii != subrows.end(); ++ii) {
-				boost::shared_ptr<Region> rr = (*ii)[_columns.region];
-
-				if (region->region_list_equivalent (rr)) {
-					return;
-				}
-			}
-			*/
-
-			iter = _model->insert (subrows.end());
-			row = *iter;
-
-		} else {
-			iter = _model->append();
-			row = *iter;
-		}
-
-		row[_columns.property_toggles_visible] = true;
-	}
-
-	row[_columns.region] = region;
-	region_row_map.insert (pair<boost::shared_ptr<ARDOUR::Region>,Gtk::TreeModel::iterator> (region,iter));
 	PropertyChange pc;
-	populate_row(region, (*row), pc);
+	region_changed(region, pc);
+}
+
+void
+EditorRegions::destroy_region (boost::shared_ptr<ARDOUR::Region> region)
+{
+	//UNTESTED
+	//At the time of writing, the only way to remove regions is "cleanup"
+	//by definition, "cleanup" only removes regions that aren't on the timeline
+	//so this would be a no-op anyway
+	//perhaps someday we will allow users to manually destroy regions.
+	RegionRowMap::iterator map_it = region_row_map.find (region);
+	if ( map_it != region_row_map.end() ) {
+		region_row_map.erase(map_it);
+		_model->erase( map_it->second );
+	}
 }
 
 void
@@ -520,71 +390,37 @@ EditorRegions::remove_unused_regions ()
 void
 EditorRegions::region_changed (boost::shared_ptr<Region> r, const PropertyChange& what_changed)
 {
-	//maybe update the grid here
-	PropertyChange grid_interests;
-	grid_interests.add (ARDOUR::Properties::position);
-	grid_interests.add (ARDOUR::Properties::length);
-	grid_interests.add (ARDOUR::Properties::sync_position);
-	if (what_changed.contains (grid_interests)) {
-		_editor->mark_region_boundary_cache_dirty();
-	}
+	RegionRowMap::iterator map_it = region_row_map.find (r);
 
-	PropertyChange our_interests;
-
-	our_interests.add (ARDOUR::Properties::name);
-	our_interests.add (ARDOUR::Properties::position);
-	our_interests.add (ARDOUR::Properties::length);
-	our_interests.add (ARDOUR::Properties::start);
-	our_interests.add (ARDOUR::Properties::sync_position);
-	our_interests.add (ARDOUR::Properties::locked);
-	our_interests.add (ARDOUR::Properties::position_lock_style);
-	our_interests.add (ARDOUR::Properties::muted);
-	our_interests.add (ARDOUR::Properties::opaque);
-	our_interests.add (ARDOUR::Properties::fade_in);
-	our_interests.add (ARDOUR::Properties::fade_out);
-	our_interests.add (ARDOUR::Properties::fade_in_active);
-	our_interests.add (ARDOUR::Properties::fade_out_active);
-
-	if (what_changed.contains (our_interests)) {
-		if (last_row != 0) {
-
-			TreeModel::iterator j = _model->get_iter (last_row.get_path());
-			boost::shared_ptr<Region> c = (*j)[_columns.region];
-
-			if (c == r) {
-				populate_row (r, (*j), what_changed);
-
-				if (what_changed.contains (ARDOUR::Properties::hidden)) {
-					redisplay ();
-				}
-
-				return;
-			}
+	boost::shared_ptr<ARDOUR::Playlist> pl = r->playlist();
+	if ( !( pl && _session && _session->playlist_is_active(pl) ) ) {
+		//this region is not on an active playlist
+		//maybe it got deleted, or whatever
+		if ( map_it != region_row_map.end() ) {
+			region_row_map.erase(map_it);
+			_model->erase( map_it->second );
 		}
-
-		RegionRowMap::iterator it;
-
-		it = region_row_map.find (r);
-
-		if (it != region_row_map.end()){
-
-			TreeModel::iterator j = it->second;
-			boost::shared_ptr<Region> c = (*j)[_columns.region];
-
-			if (c == r) {
-				populate_row (r, (*j), what_changed);
-
-				if (what_changed.contains (ARDOUR::Properties::hidden)) {
-					redisplay ();
-				}
-
-				return;
-			}
-		}
+		return;
 	}
+		
+	if ( map_it != region_row_map.end() ) {
 
-	if (what_changed.contains (ARDOUR::Properties::hidden)) {
-		redisplay ();
+		//found the region, update its row properties
+		TreeModel::Row row = *(map_it->second);
+		row[_columns.property_toggles_visible] = true;  //TODO..
+		populate_row (r, row, what_changed);
+
+	} else {
+
+		//new region, add it to the list
+		TreeModel::iterator iter = _model->append();
+		TreeModel::Row row = *iter;
+		region_row_map.insert (pair<boost::shared_ptr<ARDOUR::Region>,Gtk::TreeModel::iterator> (r,iter));
+
+		//...and populate its properties
+		row[_columns.region] = r;
+		populate_row (r, row, PropertyChange());
+
 	}
 }
 
@@ -800,6 +636,36 @@ EditorRegions::format_position (samplepos_t pos, char* buf, size_t bufsize, bool
 void
 EditorRegions::populate_row (boost::shared_ptr<Region> region, TreeModel::Row const &row, PBD::PropertyChange const &what_changed)
 {
+	//the grid is most interested in the regions that are *visible* in the editor.  this is a perfect place to flag changes to the grid cache
+	//maybe update the grid here
+	PropertyChange grid_interests;
+	grid_interests.add (ARDOUR::Properties::position);
+	grid_interests.add (ARDOUR::Properties::length);
+	grid_interests.add (ARDOUR::Properties::sync_position);
+	if (what_changed.contains (grid_interests)) {
+		_editor->mark_region_boundary_cache_dirty();
+	}
+
+printf("populate_row\n");
+	//note: do this in populate_row
+	{
+		Gdk::Color c;
+		bool missing_source = boost::dynamic_pointer_cast<SilentFileSource>(region->source()) != NULL;
+		if (missing_source) {
+			// c.set_rgb(65535,0,0);     // FIXME: error color from style
+			set_color_from_rgba (c, UIConfiguration::instance().color ("region list missing source"));
+
+		} else if (region->automatic()){
+			// c.set_rgb(0,65535,0);     // FIXME: error color from style
+			set_color_from_rgba (c, UIConfiguration::instance().color ("region list automatic"));
+
+		} else {
+			set_color_from_rgba (c, UIConfiguration::instance().color ("region list whole file"));
+		}
+
+		row[_columns.color_] = c;
+	}
+	
 	boost::shared_ptr<AudioRegion> audioregion = boost::dynamic_pointer_cast<AudioRegion>(region);
 
 	uint32_t used = 1;
