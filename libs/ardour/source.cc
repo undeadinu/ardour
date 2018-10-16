@@ -295,7 +295,14 @@ Source::set_allow_remove_if_empty (bool yn)
 void
 Source::inc_use_count ()
 {
-        g_atomic_int_inc (&_use_count);
+    g_atomic_int_inc (&_use_count);
+
+	try {
+		boost::shared_ptr<Source> sptr = shared_from_this();
+		SourcePropertyChanged (sptr);
+	} catch (...) {
+		/* no shared_ptr available, relax; */
+	}
 }
 
 void
@@ -311,6 +318,13 @@ Source::dec_use_count ()
 #else
         g_atomic_int_add (&_use_count, -1);
 #endif
+
+	try {
+		boost::shared_ptr<Source> sptr = shared_from_this();
+		SourcePropertyChanged (sptr);
+	} catch (...) {
+		/* no shared_ptr available, relax; */
+	}
 }
 
 bool

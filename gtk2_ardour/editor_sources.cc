@@ -142,7 +142,7 @@ EditorSources::EditorSources (Editor* e)
 	ColumnInfo ci[] = {
 		{ 0,   _("Source"),    _("Source name, with number of channels in []'s") },
 		{ 1,   _("Take ID"),   _("Take ID") },
-		{ 2,   _("Unused"),    _("Source is not used anywhere in this snapshot") },
+		{ 2,   _("Used?"),     _("Number of regions in the timeline that use this Source") },
 		{ 3,   _("Nat Pos"),   _("Natural Position of the file on timeline") },
 		{ 4,   _("Path"),      _("Path (folder) of the file locationlosition of end of region") },
 		{ -1, 0, 0 }
@@ -311,6 +311,12 @@ EditorSources::remove_source (boost::shared_ptr<ARDOUR::Source> source)
 void
 EditorSources::populate_row (TreeModel::Row row, boost::shared_ptr<ARDOUR::Source> source)
 {
+	ENSURE_GUI_THREAD (*this, &ARDOUR_UI::record_state_changed, row, source);
+
+	if (!source) {
+		return;
+	}
+	
 	string str;
 	Gdk::Color c;
 
@@ -358,10 +364,13 @@ EditorSources::populate_row (TreeModel::Row row, boost::shared_ptr<ARDOUR::Sourc
 
 	row[_columns.take_id] = source->take_id();
 
-	//Use-Count: How many times the source appears in a region
+	//Use-Count: How many times the source appears on the timeline
 	char buf[16];
-	if (source->use_count() > 0) {
-		sprintf(buf, " "  );
+	int uses_on_timeline = (source->use_count()/ 2) - 1;  //NOTE:  this might change someday!!!
+	if ( uses_on_timeline > 0) {
+		snprintf(buf, 16, "%d", uses_on_timeline );
+	} else if ( uses_on_timeline == 0) {
+		sprintf(buf, " " );
 	} else {
 		sprintf(buf, "*" );
 	}
@@ -425,6 +434,7 @@ EditorSources::source_changed (boost::shared_ptr<ARDOUR::Source> source)
 		boost::shared_ptr<ARDOUR::Source> ss = (*i)[_columns.source];
 		if (source == ss) {
 			populate_row(*i, source);
+			break;
 		}
 	}
 }

@@ -25,6 +25,8 @@
 
 #include <glibmm/threads.h>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/utility.hpp>
 #include "pbd/statefuldestructible.h"
 
@@ -36,7 +38,8 @@ namespace ARDOUR {
 
 class Session;
 
-class LIBARDOUR_API Source : public SessionObject
+class LIBARDOUR_API Source : public SessionObject,
+		public boost::enable_shared_from_this<ARDOUR::Source>
 {
   public:
 	enum Flag {
