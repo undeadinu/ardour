@@ -177,8 +177,6 @@ private:
 	void update_row (boost::shared_ptr<ARDOUR::Region>);
 	void update_all_rows ();
 
-	void insert_into_tmp_regionlist (boost::shared_ptr<ARDOUR::Region>);
-
 	void drag_data_received (
 		Glib::RefPtr<Gdk::DragContext> const &, gint, gint, Gtk::SelectionData const &, guint, guint
 		);
@@ -206,8 +204,6 @@ private:
 	bool _no_redisplay;
 
 	Editing::RegionListSortType _sort_type;
-
-	std::list<boost::shared_ptr<ARDOUR::Region> > tmp_region_list;
 
 	typedef boost::unordered_map<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::iterator> RegionRowMap;
 	typedef boost::unordered_map<std::string, Gtk::TreeModel::RowReference > RegionSourceMap;

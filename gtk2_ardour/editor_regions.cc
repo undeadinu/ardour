@@ -675,23 +675,13 @@ EditorRegions::redisplay ()
 
 	for (RegionFactory::RegionMap::const_iterator i = regions.begin(); i != regions.end(); ++i) {
 
-		if ( i->second->whole_file()) {
-			/* add automatic regions first so that children can find their parents as we add them */
+		if ( ! i->second->whole_file() ) {
 			add_region (i->second);
-			continue;
 		}
-
-		tmp_region_list.push_front (i->second);
-	}
-
-	for (list<boost::shared_ptr<Region> >::iterator r = tmp_region_list.begin(); r != tmp_region_list.end(); ++r) {
-		add_region (*r);
 	}
 
 	_model->set_sort_column (0, SORT_ASCENDING); // renabale sorting
 	_display.set_model (_model);
-
-	tmp_region_list.clear();
 
 	if (tree_expanded) {
 		_display.expand_all();
@@ -811,8 +801,7 @@ void
 EditorRegions::populate_row (boost::shared_ptr<Region> region, TreeModel::Row const &row, PBD::PropertyChange const &what_changed)
 {
 	boost::shared_ptr<AudioRegion> audioregion = boost::dynamic_pointer_cast<AudioRegion>(region);
-	//uint32_t used = _session->playlists->region_use_count (region);
-	/* Presently a region is only used once so let's save on the sequential scan to determine use count */
+
 	uint32_t used = 1;
 
 	PropertyChange c;
