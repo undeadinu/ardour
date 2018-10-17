@@ -99,16 +99,13 @@ EditorSources::EditorSources (Editor* e)
 	_model->set_sort_column (0, SORT_ASCENDING);
 
 	/* column widths */
-	int bbt_width, date_width, count_width, height;
+	int bbt_width, date_width, height;
 	
 	Glib::RefPtr<Pango::Layout> layout = _display.create_pango_layout (X_("000|000|000"));
 	Gtkmm2ext::get_pixel_size (layout, bbt_width, height);
 
 	Glib::RefPtr<Pango::Layout> layout2 = _display.create_pango_layout (X_("2018-10-14 12:12:30"));
 	Gtkmm2ext::get_pixel_size (layout2, date_width, height);
-
-	Glib::RefPtr<Pango::Layout> layout3 = _display.create_pango_layout (X_("0000"));
-	Gtkmm2ext::get_pixel_size (layout3, count_width, height);
 
 	TreeViewColumn* col_name = manage (new TreeViewColumn ("", _columns.name));
 	col_name->set_fixed_width (bbt_width*2);
@@ -122,17 +119,12 @@ EditorSources::EditorSources (Editor* e)
 	col_take_id->set_fixed_width (date_width);
 	col_take_id->set_sizing (TREE_VIEW_COLUMN_FIXED);
 
-	TreeViewColumn* col_use_count = manage (new TreeViewColumn ("", _columns.use_count));
-	col_use_count->set_fixed_width (count_width);
-	col_use_count->set_sizing (TREE_VIEW_COLUMN_FIXED);
-
 	TreeViewColumn* col_path = manage (new TreeViewColumn ("", _columns.path));
 	col_path->set_fixed_width (bbt_width);
 	col_path->set_sizing (TREE_VIEW_COLUMN_FIXED);
 
 	_display.append_column (*col_name);
 	_display.append_column (*col_take_id);
-	_display.append_column (*col_use_count);
 	_display.append_column (*col_nat_pos);
 	_display.append_column (*col_path);
 
@@ -142,9 +134,8 @@ EditorSources::EditorSources (Editor* e)
 	ColumnInfo ci[] = {
 		{ 0,   _("Source"),    _("Source name, with number of channels in []'s") },
 		{ 1,   _("Take ID"),   _("Take ID") },
-		{ 2,   _("Used?"),     _("Number of regions in the timeline that use this Source") },
-		{ 3,   _("Nat Pos"),   _("Natural Position of the file on timeline") },
-		{ 4,   _("Path"),      _("Path (folder) of the file locationlosition of end of region") },
+		{ 2,   _("Nat Pos"),   _("Natural Position of the file on timeline") },
+		{ 3,   _("Path"),      _("Path (folder) of the file locationlosition of end of region") },
 		{ -1, 0, 0 }
 	};
 
@@ -176,7 +167,7 @@ EditorSources::EditorSources (Editor* e)
 
 	//the PATH field should expand when the pane is opened wider
 	tv_col = _display.get_column(4);
-	renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (4));
+	renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (3));
 	tv_col->add_attribute(renderer->property_text(), _columns.path);
 	tv_col->set_expand (true);
 
@@ -364,20 +355,9 @@ EditorSources::populate_row (TreeModel::Row row, boost::shared_ptr<ARDOUR::Sourc
 
 	row[_columns.take_id] = source->take_id();
 
-	//Use-Count: How many times the source appears on the timeline
-	char buf[16];
-	int uses_on_timeline = (source->use_count()/ 2) - 1;  //NOTE:  this might change someday!!!
-	if ( uses_on_timeline > 0) {
-		snprintf(buf, 16, "%d", uses_on_timeline );
-	} else if ( uses_on_timeline == 0) {
-		sprintf(buf, " " );
-	} else {
-		sprintf(buf, "*" );
-	}
-	row[_columns.use_count] = buf;
-
 	//Natural Position
 	//note:  this format changes to follow master clock.  see  populate_row_position
+	char buf[64];
 	snprintf(buf, 16, "--" );
 	if (source->natural_position() > 0) {
 		format_position (source->natural_position(), buf, sizeof (buf));
@@ -673,15 +653,6 @@ EditorSources::populate_row (boost::shared_ptr<Region> region, TreeModel::Row co
 #endif
 
 void
-EditorSources::populate_row_used (boost::shared_ptr<Region>, TreeModel::Row const& row, uint32_t used)
-{
-/*	char buf[8];
-	snprintf (buf, sizeof (buf), "%4d" , used);
-	row[_columns.used] = buf;
-*/
-}
-
-void
 EditorSources::populate_row_name (boost::shared_ptr<Region> region, TreeModel::Row const &row)
 {
 /*	if (region->n_channels() > 1) {
@@ -718,6 +689,25 @@ EditorSources::key_press (GdkEventKey* ev)
 bool
 EditorSources::button_press (GdkEventButton *ev)
 {
+	boost::shared_ptr<Source> source;
+	TreeIter iter;
+	TreeModel::Path path;
+	TreeViewColumn* column;
+	int cellx;
+	int celly;
+
+	if (_display.get_path_at_pos ((int)ev->x, (int)ev->y, path, column, cellx, celly)) {
+		if ((iter = _model->get_iter (path))) {
+			source = (*iter)[_columns.source];
+		}
+	}
+
+	if (Keyboard::is_context_menu_event (ev)) {
+		show_context_menu (ev->button, ev->time);
+		return false;
+	}
+
+	return false;
 }
 
 int

@@ -79,7 +79,6 @@ private:
 			add (natural_pos);
 			add (path);
 			add (take_id);
-			add (use_count);
 		}
 
 		Gtk::TreeModelColumn<std::string> name;
@@ -88,7 +87,6 @@ private:
 		Gtk::TreeModelColumn<std::string> natural_pos;
 		Gtk::TreeModelColumn<std::string> path;
 		Gtk::TreeModelColumn<std::string> take_id;
-		Gtk::TreeModelColumn<std::string> use_count;
 	};
 
 	Columns _columns;
@@ -129,7 +127,6 @@ private:
 	void remove_source (boost::shared_ptr<ARDOUR::Source>);
 
 	void populate_row (boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::Row const &, PBD::PropertyChange const &);
-	void populate_row_used (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
 	void populate_row_name (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 	void populate_row_source (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 
