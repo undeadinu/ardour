@@ -678,9 +678,6 @@ Editor::register_actions ()
 	act = myactions.register_action (rl_actions, X_("rlShow"), _("Show"), sigc::mem_fun(*this, &Editor::show_region_in_region_list));
 	ActionManager::region_list_selection_sensitive_actions.push_back (act);
 
-	myactions.register_toggle_action (rl_actions, X_("rlShowAll"), _("Show All"), sigc::mem_fun(*_regions, &EditorRegions::toggle_full));
-	myactions.register_toggle_action (rl_actions, X_("rlShowAuto"), _("Show Automatic Regions"), sigc::mem_fun (*_regions, &EditorRegions::toggle_show_auto_regions));
-
 	myactions.register_radio_action (rl_actions, sort_order_group, X_("SortAscending"),  _("Ascending"),
 			sigc::bind (sigc::mem_fun (*_regions, &EditorRegions::reset_sort_direction), true));
 	myactions.register_radio_action (rl_actions, sort_order_group, X_("SortDescending"),   _("Descending"),

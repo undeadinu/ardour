@@ -78,12 +78,10 @@ EditorRegions::EditorRegions (Editor* e)
 	, old_focus (0)
 	, name_editable (0)
 	, _menu (0)
-	, _show_automatic_regions (true)
 	, ignore_region_list_selection_change (false)
 	, ignore_selected_region_change (false)
 	, _no_redisplay (false)
 	, _sort_type ((Editing::RegionListSortType) 0)
-	, expanded (false)
 {
 	_display.set_size_request (100, -1);
 	_display.set_rules_hint (true);
@@ -491,19 +489,11 @@ EditorRegions::redisplay ()
 		return;
 	}
 
-	bool tree_expanded = false;
-
-	/* If the list was expanded prior to rebuilding, expand it again afterwards */
-	if (toggle_full_action()->get_active()) {
-		tree_expanded = true;
-	}
-
 	_display.set_model (Glib::RefPtr<Gtk::TreeStore>(0));
 	_model->clear ();
 	_model->set_sort_column (-2, SORT_ASCENDING); //Disable sorting to gain performance
 
 	region_row_map.clear();
-	parent_regions_sources_map.clear();
 
 	/* now add everything we have, via a temporary list used to help with sorting */
 
@@ -518,10 +508,6 @@ EditorRegions::redisplay ()
 
 	_model->set_sort_column (0, SORT_ASCENDING); // renabale sorting
 	_display.set_model (_model);
-
-	if (tree_expanded) {
-		_display.expand_all();
-	}
 }
 
 void
@@ -916,31 +902,6 @@ EditorRegions::populate_row_source (boost::shared_ptr<Region> region, TreeModel:
 }
 
 void
-EditorRegions::toggle_show_auto_regions ()
-{
-	_show_automatic_regions = toggle_show_auto_regions_action()->get_active();
-	redisplay ();
-}
-
-void
-EditorRegions::toggle_full ()
-{
-	set_full (toggle_full_action()->get_active ());
-}
-
-void
-EditorRegions::set_full (bool f)
-{
-	if (f) {
-		_display.expand_all ();
-		expanded = true;
-	} else {
-		_display.collapse_all ();
-		expanded = false;
-	}
-}
-
-void
 EditorRegions::show_context_menu (int button, int time)
 {
 	if (_menu == 0) {
@@ -1306,7 +1267,6 @@ EditorRegions::clear ()
 
 	/* Clean up the maps */
 	region_row_map.clear();
-	parent_regions_sources_map.clear();
 }
 
 boost::shared_ptr<Region>
@@ -1344,10 +1304,6 @@ EditorRegions::thaw_tree_model (){
 
 	_model->set_sort_column (0, SORT_ASCENDING); // renabale sorting
 	_display.set_model (_model);
-
-	if (toggle_full_action()->get_active()) {
-		_display.expand_all();
-	}
 }
 
 void
@@ -1412,8 +1368,6 @@ EditorRegions::get_state () const
 	RefPtr<Action> act = ActionManager::get_action (X_("RegionList"), X_("SortAscending"));
 	bool const ascending = RefPtr<RadioAction>::cast_dynamic(act)->get_active ();
 	node->set_property (X_("sort-ascending"), ascending);
-	node->set_property (X_("show-all"), toggle_full_action()->get_active());
-	node->set_property (X_("show-automatic-regions"), _show_automatic_regions);
 
 	return *node;
 }
@@ -1460,23 +1414,6 @@ EditorRegions::set_state (const XMLNode & node)
 		}
 
 		RefPtr<RadioAction>::cast_dynamic(act)->set_active ();
-	}
-
-	if (node.get_property (X_("show-all"), yn)) {
-		if (expanded != yn) {
-			changed = true;
-		}
-
-		set_full (yn);
-		toggle_full_action()->set_active (yn);
-	}
-
-	if (node.get_property (X_("show-automatic-regions"), yn)) {
-		if (yn != _show_automatic_regions) {
-			_show_automatic_regions = yn;
-			toggle_show_auto_regions_action()->set_active (yn);
-			changed = true;
-		}
 	}
 
 	if (changed) {
@@ -1548,20 +1485,4 @@ RefPtr<Action>
 EditorRegions::remove_unused_regions_action () const
 {
 	return ActionManager::get_action (X_("RegionList"), X_("removeUnusedRegions"));
-}
-
-RefPtr<ToggleAction>
-EditorRegions::toggle_full_action () const
-{
-	Glib::RefPtr<Action> act = ActionManager::get_action (X_("RegionList"), X_("rlShowAll"));
-	assert (act);
-	return Glib::RefPtr<ToggleAction>::cast_dynamic (act);
-}
-
-RefPtr<ToggleAction>
-EditorRegions::toggle_show_auto_regions_action () const
-{
-	Glib::RefPtr<Action> act = ActionManager::get_action (X_("RegionList"), X_("rlShowAuto"));
-	assert (act);
-	return Glib::RefPtr<ToggleAction>::cast_dynamic (act);
 }

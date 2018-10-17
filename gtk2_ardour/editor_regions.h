@@ -41,8 +41,6 @@ public:
 
 	void clear ();
 
-	void toggle_full ();
-	void toggle_show_auto_regions ();
 	void reset_sort_direction (bool);
 	void reset_sort_type (Editing::RegionListSortType, bool);
 	void set_selected (RegionSelection &);
@@ -183,13 +181,10 @@ private:
 		);
 
 	Glib::RefPtr<Gtk::RadioAction> sort_type_action (Editing::RegionListSortType) const;
-	void set_full (bool);
 
 	Glib::RefPtr<Gtk::Action> hide_action () const;
 	Glib::RefPtr<Gtk::Action> show_action () const;
 	Glib::RefPtr<Gtk::Action> remove_unused_regions_action () const;
-	Glib::RefPtr<Gtk::ToggleAction> toggle_full_action () const;
-	Glib::RefPtr<Gtk::ToggleAction> toggle_show_auto_regions_action () const;
 
 	Gtk::Menu* _menu;
 	Gtk::ScrolledWindow _scroller;
@@ -199,7 +194,6 @@ private:
 
 	Glib::RefPtr<Gtk::TreeStore> _model;
 
-	bool _show_automatic_regions;
 	bool ignore_region_list_selection_change;
 	bool ignore_selected_region_change;
 	bool _no_redisplay;
@@ -207,18 +201,14 @@ private:
 	Editing::RegionListSortType _sort_type;
 
 	typedef boost::unordered_map<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::iterator> RegionRowMap;
-	typedef boost::unordered_map<std::string, Gtk::TreeModel::RowReference > RegionSourceMap;
 
 	RegionRowMap region_row_map;
-	RegionSourceMap parent_regions_sources_map;
 
 	PBD::ScopedConnection region_property_connection;
 	PBD::ScopedConnection check_new_region_connection;
 
 	PBD::ScopedConnection editor_freeze_connection;
 	PBD::ScopedConnection editor_thaw_connection;
-
-	bool expanded;
 };
 
 #endif /* __gtk_ardour_editor_regions_h__ */

@@ -693,8 +693,6 @@
     <menuitem action='rlHide'/>
     <menuitem action='rlShow'/>
     <separator/>
-    <menuitem action='rlShowAll'/>
-    <menuitem action='rlShowAuto'/>
     <menu name='Sort' action='RegionListSort'>
       <menuitem action='SortAscending'/>
       <menuitem action='SortDescending'/>
