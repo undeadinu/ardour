@@ -166,7 +166,7 @@ EditorSources::EditorSources (Editor* e)
 //	tv_col->set_expand (true);
 
 	//the PATH field should expand when the pane is opened wider
-	tv_col = _display.get_column(4);
+	tv_col = _display.get_column(3);
 	renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (3));
 	tv_col->add_attribute(renderer->property_text(), _columns.path);
 	tv_col->set_expand (true);
@@ -689,7 +689,7 @@ EditorSources::key_press (GdkEventKey* ev)
 bool
 EditorSources::button_press (GdkEventButton *ev)
 {
-	boost::shared_ptr<Source> source;
+	boost::shared_ptr<ARDOUR::Source> source;
 	TreeIter iter;
 	TreeModel::Path path;
 	TreeViewColumn* column;
