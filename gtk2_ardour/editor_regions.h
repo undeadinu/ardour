@@ -41,17 +41,11 @@ public:
 
 	void clear ();
 
-	void reset_sort_direction (bool);
-	void reset_sort_type (Editing::RegionListSortType, bool);
 	void set_selected (RegionSelection &);
 	void selection_mapover (sigc::slot<void,boost::shared_ptr<ARDOUR::Region> >);
 
 	boost::shared_ptr<ARDOUR::Region> get_dragged_region ();
 	boost::shared_ptr<ARDOUR::Region> get_single_selection ();
-
-	Editing::RegionListSortType sort_type () const {
-		return _sort_type;
-	}
 
 	void redisplay ();
 
@@ -82,9 +76,8 @@ private:
 	struct Columns : public Gtk::TreeModel::ColumnRecord {
 		Columns () {
 			add (name);
-			add (region);
-			add (color_);
-			add (position);
+			add (take_id);
+			add (start);
 			add (end);
 			add (length);
 			add (sync);
@@ -95,13 +88,15 @@ private:
 			add (muted);
 			add (opaque);
 			add (path);
-			add (property_toggles_visible);
+			add (region);
+			add (color_);
+			add (position);
 		}
 
 		Gtk::TreeModelColumn<std::string> name;
-		Gtk::TreeModelColumn<boost::shared_ptr<ARDOUR::Region> > region;
-		Gtk::TreeModelColumn<Gdk::Color> color_;
-		Gtk::TreeModelColumn<std::string> position;
+		Gtk::TreeModelColumn<std::string> take_id;
+		Gtk::TreeModelColumn<samplepos_t> position;
+		Gtk::TreeModelColumn<std::string> start;
 		Gtk::TreeModelColumn<std::string> end;
 		Gtk::TreeModelColumn<std::string> length;
 		Gtk::TreeModelColumn<std::string> sync;
@@ -112,8 +107,8 @@ private:
 		Gtk::TreeModelColumn<bool> muted;
 		Gtk::TreeModelColumn<bool> opaque;
 		Gtk::TreeModelColumn<std::string> path;
-		/** used to indicate whether the locked/glued/muted/opaque should be visible or not */
-		Gtk::TreeModelColumn<bool> property_toggles_visible;
+		Gtk::TreeModelColumn<boost::shared_ptr<ARDOUR::Region> > region;
+		Gtk::TreeModelColumn<Gdk::Color> color_;
 	};
 
 	Columns _columns;
@@ -149,8 +144,6 @@ private:
 
 	void show_context_menu (int button, int time);
 
-	int sorter (Gtk::TreeModel::iterator, Gtk::TreeModel::iterator);
-
 	void format_position (ARDOUR::samplepos_t pos, char* buf, size_t bufsize, bool onoff = true);
 
 	void add_region (boost::shared_ptr<ARDOUR::Region>);
@@ -178,8 +171,6 @@ private:
 		Glib::RefPtr<Gdk::DragContext> const &, gint, gint, Gtk::SelectionData const &, guint, guint
 		);
 
-	Glib::RefPtr<Gtk::RadioAction> sort_type_action (Editing::RegionListSortType) const;
-
 	Glib::RefPtr<Gtk::Action> remove_unused_regions_action () const;
 
 	Gtk::Menu* _menu;
@@ -193,8 +184,6 @@ private:
 	bool ignore_region_list_selection_change;
 	bool ignore_selected_region_change;
 	bool _no_redisplay;
-
-	Editing::RegionListSortType _sort_type;
 
 	typedef boost::unordered_map<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::iterator> RegionRowMap;
 

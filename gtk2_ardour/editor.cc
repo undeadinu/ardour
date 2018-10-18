@@ -2486,11 +2486,6 @@ Editor::set_state (const XMLNode& node, int version)
 		set_stationary_playhead (yn);
 	}
 
-	RegionListSortType sort_type;
-	if (node.get_property ("region-list-sort-type", sort_type)) {
-		_regions->reset_sort_type (sort_type, true);
-	}
-
 	if (node.get_property ("show-editor-mixer", yn)) {
 
 		Glib::RefPtr<Action> act = ActionManager::get_action (X_("Editor"), X_("show-editor-mixer"));
@@ -2619,7 +2614,6 @@ Editor::get_state ()
 	node->set_property ("maximised", _maximised);
 	node->set_property ("follow-playhead", _follow_playhead);
 	node->set_property ("stationary-playhead", _stationary_playhead);
-	node->set_property ("region-list-sort-type", _regions->sort_type ());
 	node->set_property ("mouse-mode", mouse_mode);
 	node->set_property ("join-object-range", smart_mode_action->get_active ());
 
