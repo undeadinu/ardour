@@ -690,8 +690,6 @@
 
   <popup name='RegionListMenu' accelerators='true'>
     <menuitem action='rlAudition'/>
-    <menuitem action='rlHide'/>
-    <menuitem action='rlShow'/>
     <separator/>
     <menu name='Sort' action='RegionListSort'>
       <menuitem action='SortAscending'/>
