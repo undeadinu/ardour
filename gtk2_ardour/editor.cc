@@ -5762,18 +5762,6 @@ Editor::audition_region_from_region_list ()
 }
 
 void
-Editor::hide_region_from_region_list ()
-{
-	_regions->selection_mapover (sigc::mem_fun (*this, &Editor::hide_a_region));
-}
-
-void
-Editor::show_region_in_region_list ()
-{
-	_regions->selection_mapover (sigc::mem_fun (*this, &Editor::show_a_region));
-}
-
-void
 Editor::step_edit_status_change (bool yn)
 {
 	if (yn) {
