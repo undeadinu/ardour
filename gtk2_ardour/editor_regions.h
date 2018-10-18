@@ -94,7 +94,6 @@ private:
 			add (glued);
 			add (muted);
 			add (opaque);
-			add (used);
 			add (path);
 			add (property_toggles_visible);
 		}
@@ -112,7 +111,6 @@ private:
 		Gtk::TreeModelColumn<bool> glued;
 		Gtk::TreeModelColumn<bool> muted;
 		Gtk::TreeModelColumn<bool> opaque;
-		Gtk::TreeModelColumn<std::string> used;
 		Gtk::TreeModelColumn<std::string> path;
 		/** used to indicate whether the locked/glued/muted/opaque should be visible or not */
 		Gtk::TreeModelColumn<bool> property_toggles_visible;
@@ -159,16 +157,16 @@ private:
 	void destroy_region (boost::shared_ptr<ARDOUR::Region>);
 
 	void populate_row (boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::Row const &, PBD::PropertyChange const &);
-	void populate_row_used (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_position (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_end (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_sync (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_fade_in (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used, boost::shared_ptr<ARDOUR::AudioRegion>);
-	void populate_row_fade_out (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used, boost::shared_ptr<ARDOUR::AudioRegion>);
-	void populate_row_locked (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_muted (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_glued (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
-	void populate_row_opaque (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, uint32_t used);
+	void populate_row_used (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_position (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_end (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_sync (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_fade_in (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, boost::shared_ptr<ARDOUR::AudioRegion>);
+	void populate_row_fade_out (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row, boost::shared_ptr<ARDOUR::AudioRegion>);
+	void populate_row_locked (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_muted (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_glued (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
+	void populate_row_opaque (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 	void populate_row_length (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 	void populate_row_name (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
 	void populate_row_source (boost::shared_ptr<ARDOUR::Region> region, Gtk::TreeModel::Row const& row);
@@ -182,8 +180,6 @@ private:
 
 	Glib::RefPtr<Gtk::RadioAction> sort_type_action (Editing::RegionListSortType) const;
 
-	Glib::RefPtr<Gtk::Action> hide_action () const;
-	Glib::RefPtr<Gtk::Action> show_action () const;
 	Glib::RefPtr<Gtk::Action> remove_unused_regions_action () const;
 
 	Gtk::Menu* _menu;
