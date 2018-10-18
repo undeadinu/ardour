@@ -134,9 +134,6 @@ private:
 
 	Glib::RefPtr<Gtk::TreeStore> _model;
 
-	bool ignore_region_list_selection_change;
-	bool ignore_selected_region_change;
-
 	std::list<boost::shared_ptr<ARDOUR::Region> > tmp_region_list;
 
 	typedef boost::unordered_map<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::RowReference> RegionRowMap;

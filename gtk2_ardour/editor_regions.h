@@ -181,8 +181,6 @@ private:
 
 	Glib::RefPtr<Gtk::TreeStore> _model;
 
-	bool ignore_region_list_selection_change;
-	bool ignore_selected_region_change;
 	bool _no_redisplay;
 
 	typedef boost::unordered_map<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::iterator> RegionRowMap;

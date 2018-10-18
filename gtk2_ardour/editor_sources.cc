@@ -78,8 +78,6 @@ EditorSources::EditorSources (Editor* e)
 	: EditorComponent (e)
 	, old_focus (0)
 	, _menu (0)
-	, ignore_region_list_selection_change (false)
-	, ignore_selected_region_change (false)
 	, _selection (0)
 {
 	_display.set_size_request (100, -1);
@@ -420,12 +418,7 @@ EditorSources::source_changed (boost::shared_ptr<ARDOUR::Source> source)
 void
 EditorSources::selection_changed ()
 {
-/*
- * 	if (ignore_region_list_selection_change) {
-		return;
-	}
-
-	_editor->_region_selection_change_updates_region_list = false;
+//	_editor->_region_selection_change_updates_region_list = false;
 
 	if (_display.get_selection()->count_selected_rows() > 0) {
 
@@ -438,17 +431,18 @@ EditorSources::selection_changed ()
 
 			if ((iter = _model->get_iter (*i))) {
 
-				boost::shared_ptr<Region> region = (*iter)[_columns.region];
+				boost::shared_ptr<ARDOUR::Source> source = (*iter)[_columns.source];
+				if (source) {
 
-				// they could have clicked on a row that is just a placeholder, like "Hidden"
-				// although that is not allowed by our selection filter. check it anyway
-				// since we need a region ptr.
+					set<boost::shared_ptr<Region> > regions;
+					RegionFactory::get_regions_using_source ( source, regions );
 
-				if (region) {
-
-					_change_connection.block (true);
-					_editor->set_selected_regionview_from_region_list (region, Selection::Add);
-					_change_connection.block (false);
+					for (set<boost::shared_ptr<Region> >::iterator region = regions.begin(); region != regions.end(); region++ ) {
+						_change_connection.block (true);
+						_editor->set_selected_regionview_from_region_list (*region, Selection::Add);
+						_change_connection.block (false);
+	
+					}
 				}
 			}
 
@@ -457,8 +451,7 @@ EditorSources::selection_changed ()
 		_editor->get_selection().clear_regions ();
 	}
 
-	_editor->_region_selection_change_updates_region_list = true;
-*/
+//	_editor->_region_selection_change_updates_region_list = true;
 }
 
 void
@@ -550,7 +543,7 @@ EditorSources::show_context_menu (int button, int time)
 bool
 EditorSources::key_press (GdkEventKey* ev)
 {
-
+	return false;
 }
 
 bool
@@ -626,7 +619,23 @@ EditorSources::clear ()
 boost::shared_ptr<ARDOUR::Source>
 EditorSources::get_single_selection ()
 {
+	Glib::RefPtr<TreeSelection> selected = _display.get_selection();
 
+	if (selected->count_selected_rows() != 1) {
+		return boost::shared_ptr<ARDOUR::Source> ();
+	}
+
+	TreeView::Selection::ListHandle_Path rows = selected->get_selected_rows ();
+
+	/* only one row selected, so rows.begin() is it */
+
+	TreeIter iter = _model->get_iter (*rows.begin());
+
+	if (!iter) {
+		return boost::shared_ptr<ARDOUR::Source> ();
+	}
+
+	return (*iter)[_columns.source];
 }
 
 void

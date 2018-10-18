@@ -80,8 +80,6 @@ EditorRegions::EditorRegions (Editor* e)
 	, old_focus (0)
 	, name_editable (0)
 	, _menu (0)
-	, ignore_region_list_selection_change (false)
-	, ignore_selected_region_change (false)
 	, _no_redisplay (false)
 {
 	_display.set_size_request (100, -1);
@@ -273,8 +271,6 @@ EditorRegions::EditorRegions (Editor* e)
 
 	//ARDOUR_UI::instance()->secondary_clock.mode_changed.connect (sigc::mem_fun(*this, &Editor::redisplay_regions));
 	ARDOUR_UI::instance()->primary_clock->mode_changed.connect (sigc::mem_fun(*this, &EditorRegions::update_all_rows));
-	ARDOUR::Region::RegionPropertyChanged.connect (region_property_connection, MISSING_INVALIDATOR, boost::bind (&EditorRegions::region_changed, this, _1, _2), gui_context());
-	ARDOUR::RegionFactory::CheckNewRegion.connect (check_new_region_connection, MISSING_INVALIDATOR, boost::bind (&EditorRegions::add_region, this, _1), gui_context());
 
 	e->EditorFreeze.connect (editor_freeze_connection, MISSING_INVALIDATOR, boost::bind (&EditorRegions::freeze_tree_model, this), gui_context());
 	e->EditorThaw.connect (editor_thaw_connection, MISSING_INVALIDATOR, boost::bind (&EditorRegions::thaw_tree_model, this), gui_context());
@@ -341,6 +337,10 @@ void
 EditorRegions::set_session (ARDOUR::Session* s)
 {
 	SessionHandlePtr::set_session (s);
+	
+	ARDOUR::Region::RegionPropertyChanged.connect (region_property_connection, MISSING_INVALIDATOR, boost::bind (&EditorRegions::region_changed, this, _1, _2), gui_context());
+	ARDOUR::RegionFactory::CheckNewRegion.connect (check_new_region_connection, MISSING_INVALIDATOR, boost::bind (&EditorRegions::add_region, this, _1), gui_context());
+
 	redisplay ();
 }
 
@@ -437,10 +437,6 @@ EditorRegions::region_changed (boost::shared_ptr<Region> r, const PropertyChange
 void
 EditorRegions::selection_changed ()
 {
-	if (ignore_region_list_selection_change) {
-		return;
-	}
-
 	_editor->_region_selection_change_updates_region_list = false;
 
 	if (_display.get_selection()->count_selected_rows() > 0) {
