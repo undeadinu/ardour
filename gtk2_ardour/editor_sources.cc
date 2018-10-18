@@ -175,7 +175,7 @@ EditorSources::EditorSources (Editor* e)
 	tv_col->set_expand (true);
 
 	_display.get_selection()->set_mode (SELECTION_MULTIPLE);
-	_display.add_object_drag (_columns.source.index(), "sources");
+	_display.add_object_drag (_columns.source.index(), "regions");
 	_display.set_drag_column (_columns.name.index());
 
 	/* setup DnD handling */
@@ -596,14 +596,23 @@ EditorSources::drag_data_received (const RefPtr<Gdk::DragContext>& context,
 bool
 EditorSources::selection_filter (const RefPtr<TreeModel>& model, const TreeModel::Path& path, bool already_selected)
 {
-
+	return true;
 }
 
 /** @return Region that has been dragged out of the list, or 0 */
-boost::shared_ptr<Region>
-EditorSources::get_dragged_region ()
+boost::shared_ptr<ARDOUR::Source>
+EditorSources::get_dragged_source ()
 {
+	list<boost::shared_ptr<ARDOUR::Source> > sources;
+	TreeView* source;
+	_display.get_object_drag_data (sources, &source);
 
+	if (sources.empty()) {
+		return boost::shared_ptr<ARDOUR::Source> ();
+	}
+
+	assert (sources.size() == 1);
+	return sources.front ();
 }
 
 void
@@ -614,7 +623,7 @@ EditorSources::clear ()
 	_display.set_model (_model);
 }
 
-boost::shared_ptr<Region>
+boost::shared_ptr<ARDOUR::Source>
 EditorSources::get_single_selection ()
 {
 

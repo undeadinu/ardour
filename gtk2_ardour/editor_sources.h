@@ -47,8 +47,8 @@ public:
 
 	void selection_mapover (sigc::slot<void,boost::shared_ptr<ARDOUR::Region> >);
 
-	boost::shared_ptr<ARDOUR::Region> get_dragged_region ();
-	boost::shared_ptr<ARDOUR::Region> get_single_selection ();
+	boost::shared_ptr<ARDOUR::Source> get_dragged_source ();
+	boost::shared_ptr<ARDOUR::Source> get_single_selection ();
 
 	void block_change_connection (bool b) {
 		_change_connection.block (b);
@@ -130,7 +130,7 @@ private:
 	Gtk::ScrolledWindow _scroller;
 	Gtk::Frame _frame;
 
-	Gtkmm2ext::DnDTreeView<boost::shared_ptr<ARDOUR::Region> > _display;
+	Gtkmm2ext::DnDTreeView<boost::shared_ptr<ARDOUR::Source> > _display;
 
 	Glib::RefPtr<Gtk::TreeStore> _model;
 
