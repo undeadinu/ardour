@@ -69,6 +69,8 @@ using Gtkmm2ext::Keyboard;
 
 struct ColumnInfo {
 	int         index;
+	int         sort_idx;
+	Gtk::AlignmentEnum al;
 	const char* label;
 	const char* tooltip;
 };
@@ -161,51 +163,44 @@ EditorRegions::EditorRegions (Editor* e)
 	Gtk::Label* l;
 
 	ColumnInfo ci[] = {
-		{ 0,   _("Region"),    _("Region name, with number of channels in []'s") },
-		{ 1,   _("Take"),      _("Take ID (or file creation time)") },
-		{ 2,   _("Start"),     _("Position of start of region") },
-		{ 3,  S_("Lock|L"),    _("Region position locked?") },
-		{ 4,  S_("Gain|G"),    _("Region position glued to Bars|Beats time?") },
-		{ 5,  S_("Mute|M"),    _("Region muted?") },
-		{ 6,  S_("Opaque|O"),  _("Region opaque (blocks regions below it from being heard)?") },
-		{ 7,   _("End"),       _("Position of end of region") },
-		{ 8,   _("Length"),    _("Length of the region") },
-		{ 9,   _("Sync"),      _("Position of region sync point, relative to start of the region") },
-		{ 10,  _("Fade In"),   _("Length of region fade-in (units: secondary clock), () if disabled") },
-		{ 11,  _("Fade Out"),  _("Length of region fade-out (units: secondary clock), () if disabled") },
-		{ -1, 0, 0 }
+		{ 0,  0,  ALIGN_LEFT,    _("Region"),    _("Region name, with number of channels in []'s") },
+		{ 1,  1,  ALIGN_LEFT,    _("Take"),      _("Take ID (or file creation time)") },
+		{ 2, 15,  ALIGN_RIGHT,   _("Start"),     _("Position of start of region") },
+		{ 3, -1,  ALIGN_CENTER, S_("Lock|L"),    _("Region position locked?") },
+		{ 4, -1,  ALIGN_CENTER, S_("Gain|G"),    _("Region position glued to Bars|Beats time?") },
+		{ 5, -1,  ALIGN_CENTER, S_("Mute|M"),    _("Region muted?") },
+		{ 6, -1,  ALIGN_CENTER, S_("Opaque|O"),  _("Region opaque (blocks regions below it from being heard)?") },
+		{ 7, -1,  ALIGN_RIGHT,  _("End"),       _("Position of end of region") },
+		{ 8, -1,  ALIGN_RIGHT,  _("Length"),    _("Length of the region") },
+		{ 9, -1,  ALIGN_RIGHT,  _("Sync"),      _("Position of region sync point, relative to start of the region") },
+		{ 10,-1,  ALIGN_RIGHT,  _("Fade In"),   _("Length of region fade-in (units: secondary clock), () if disabled") },
+		{ 11,-1,  ALIGN_RIGHT,  _("Fade Out"),  _("Length of region fade-out (units: secondary clock), () if disabled") },
+		{ -1,-1,  ALIGN_CENTER, 0, 0 }
 	};
 
 	for (int i = 0; ci[i].index >= 0; ++i) {
+
 		col = _display.get_column (ci[i].index);
+
+		//add the label
 		l = manage (new Label (ci[i].label));
-		l->set_alignment(ALIGN_RIGHT);
+		l->set_alignment(ci[i].al);
 		set_tooltip (*l, ci[i].tooltip);
 		col->set_widget (*l);
 		l->show ();
 
-		if (i == 0 ) {
-			col->set_sort_column(0);
-		}
-		if (i == 1 ) {
-			col->set_sort_column(1);
-		}
-		if (i == 2 ) {
-			col->set_sort_column(15);
-		}
+		col->set_sort_column(ci[i].sort_idx);
 
-		//checkboxes
-		if ( (ci[i].index > 2) && (ci[i].index <= 6) ) {
-			col->set_expand (false);
-			col->set_alignment (ALIGN_CENTER);
-		}
+		col->set_expand (false);
 
-		//clocks
-		if ( (ci[i].index > 6) && (ci[i].index <= 11) ) {
-			col->set_expand (false);
-			col->set_alignment (ALIGN_RIGHT);
-		}
+		//this sets the alignment of the column header...
+		col->set_alignment (ci[i].al);
 
+		//...and this sets the alignment for the data cells
+		CellRendererText *renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (i));
+		if (renderer) {
+			renderer->property_xalign() = ( ci[i].al == ALIGN_RIGHT ? 1.0 : (ci[i].al == ALIGN_LEFT ? 0.0 : 0.5));
+		}
 	}
 
 	_display.set_model (_model);
@@ -230,14 +225,6 @@ EditorRegions::EditorRegions (Editor* e)
 	tv_col->add_attribute(renderer->property_foreground_gdk(), _columns.color_);
 	tv_col->set_expand (true);
 
-	//clocks should be right-justified
-	renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (2));
-	renderer->property_xalign() = 1;
-	for (int i = 7; i < 11; ++i) {
-		renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (i));
-		renderer->property_xalign() = 1;
-	}
-	
 	CellRendererToggle* locked_cell = dynamic_cast<CellRendererToggle*> (_display.get_column_cell_renderer (3));
 	locked_cell->property_activatable() = true;
 	locked_cell->signal_toggled().connect (sigc::mem_fun (*this, &EditorRegions::locked_changed));
