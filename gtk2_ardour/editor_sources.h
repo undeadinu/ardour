@@ -118,29 +118,19 @@ private:
 
 	void update_all_rows ();
 
-	void insert_into_tmp_regionlist (boost::shared_ptr<ARDOUR::Region>);
-
 	void drag_data_received (
 		Glib::RefPtr<Gdk::DragContext> const &, gint, gint, Gtk::SelectionData const &, guint, guint
 		);
 
-	Glib::RefPtr<Gtk::Action> remove_unused_regions_action () const;
+	Glib::RefPtr<Gtk::Action> remove_unused_regions_action () const;  //TODO: what is the equivalent?
 
 	Gtk::Menu* _menu;
 	Gtk::ScrolledWindow _scroller;
 	Gtk::Frame _frame;
 
-	Gtkmm2ext::DnDTreeView<boost::shared_ptr<ARDOUR::Source> > _display;
+	Gtkmm2ext::DnDTreeView<boost::shared_ptr<ARDOUR::Source> > _display;  //TODO .. try changing this to region
 
 	Glib::RefPtr<Gtk::TreeStore> _model;
-
-	std::list<boost::shared_ptr<ARDOUR::Region> > tmp_region_list;
-
-	typedef boost::unordered_map<boost::shared_ptr<ARDOUR::Region>, Gtk::TreeModel::RowReference> RegionRowMap;
-	typedef boost::unordered_map<std::string, Gtk::TreeModel::RowReference > RegionSourceMap;
-
-	RegionRowMap region_row_map;
-	RegionSourceMap parent_regions_sources_map;
 
 	PBD::ScopedConnection source_property_connection;
 
