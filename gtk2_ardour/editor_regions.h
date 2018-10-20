@@ -76,7 +76,7 @@ private:
 	struct Columns : public Gtk::TreeModel::ColumnRecord {
 		Columns () {
 			add (name);
-			add (take_id);
+			add (tags);
 			add (start);
 			add (end);
 			add (length);
@@ -94,7 +94,7 @@ private:
 		}
 
 		Gtk::TreeModelColumn<std::string> name;
-		Gtk::TreeModelColumn<std::string> take_id;
+		Gtk::TreeModelColumn<std::string> tags;
 		Gtk::TreeModelColumn<samplepos_t> position;
 		Gtk::TreeModelColumn<std::string> start;
 		Gtk::TreeModelColumn<std::string> end;

@@ -110,9 +110,9 @@ EditorRegions::EditorRegions (Editor* e)
 	TreeViewColumn* col_name = manage (new TreeViewColumn ("", _columns.name));
 	col_name->set_fixed_width (120);
 	col_name->set_sizing (TREE_VIEW_COLUMN_FIXED);
-	TreeViewColumn* col_take = manage (new TreeViewColumn ("", _columns.take_id));
-	col_take->set_fixed_width (date_width);
-	col_take->set_sizing (TREE_VIEW_COLUMN_FIXED);
+	TreeViewColumn* col_tags = manage (new TreeViewColumn ("", _columns.tags));
+	col_tags->set_fixed_width (date_width);
+	col_tags->set_sizing (TREE_VIEW_COLUMN_FIXED);
 	TreeViewColumn* col_start = manage (new TreeViewColumn ("", _columns.start));
 	col_start->set_fixed_width (bbt_width);
 	col_start->set_sizing (TREE_VIEW_COLUMN_FIXED);
@@ -145,7 +145,7 @@ EditorRegions::EditorRegions (Editor* e)
 	col_opaque->set_sizing (TREE_VIEW_COLUMN_FIXED);
 
 	_display.append_column (*col_name);
-	_display.append_column (*col_take);
+	_display.append_column (*col_tags);
 	_display.append_column (*col_start);
 	_display.append_column (*col_locked);
 	_display.append_column (*col_glued);
@@ -162,7 +162,7 @@ EditorRegions::EditorRegions (Editor* e)
 
 	ColumnInfo ci[] = {
 		{ 0,  0,  ALIGN_LEFT,    _("Region"),    _("Region name, with number of channels in []'s") },
-		{ 1,  1,  ALIGN_LEFT,    _("Take"),      _("Take ID (or file creation time)") },
+		{ 1,  1,  ALIGN_LEFT,    _("Tags"),      _("Tags") },
 		{ 2, 15,  ALIGN_RIGHT,   _("Start"),     _("Position of start of region") },
 		{ 3, -1,  ALIGN_CENTER, S_("Lock|L"),    _("Region position locked?") },
 		{ 4, -1,  ALIGN_CENTER, S_("Gain|G"),    _("Region position glued to Bars|Beats time?") },
@@ -638,15 +638,17 @@ EditorRegions::populate_row (boost::shared_ptr<Region> region, TreeModel::Row co
 		_editor->mark_region_boundary_cache_dirty();
 	}
 
-	Gdk::Color c;
-	bool missing_source = boost::dynamic_pointer_cast<SilentFileSource>(region->source()) != NULL;
-	if (missing_source) {
-		set_color_from_rgba (c, UIConfiguration::instance().color ("region list missing source"));
-	} else {
-		set_color_from_rgba (c, UIConfiguration::instance().color ("region list whole file"));
+	{
+		Gdk::Color c;
+		bool missing_source = boost::dynamic_pointer_cast<SilentFileSource>(region->source()) != NULL;
+		if (missing_source) {
+			set_color_from_rgba (c, UIConfiguration::instance().color ("region list missing source"));
+		} else {
+			set_color_from_rgba (c, UIConfiguration::instance().color ("region list whole file"));
+		}
+		row[_columns.color_] = c;
 	}
-	row[_columns.color_] = c;
-	
+		
 	boost::shared_ptr<AudioRegion> audioregion = boost::dynamic_pointer_cast<AudioRegion>(region);
 
 	PropertyChange c;
@@ -842,7 +844,7 @@ EditorRegions::populate_row_source (boost::shared_ptr<Region> region, TreeModel:
 		row[_columns.path] = Gtkmm2ext::markup_escape_text (region->source()->name());
 	}
 
-	row[_columns.take_id] = region->source()->take_id();  //TODO:  what if there is no take-id?  anything else we can use?
+	row[_columns.tags] = region->tags();
 }
 
 void
