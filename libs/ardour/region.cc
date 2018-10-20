@@ -1975,3 +1975,19 @@ Region::latest_possible_sample () const
 
 	return _position + (minlen - _start) - 1;
 }
+
+
+struct SortByTag {
+	bool operator() (std::string a, std::string b) {
+		return a.compare (b) < 0;
+	}
+};
+
+std::string
+Region::tags () const
+{
+	std::string t = _tags;
+
+	return t;
+}
+

@@ -281,6 +281,11 @@ public:
 	virtual boost::shared_ptr<const Evoral::Control>
 	control (const Evoral::Parameter& id) const = 0;
 
+	/* tags */
+
+	void          set_tags (std::string t) {_tags = t;}
+	std::string   tags () const;
+
 	/* serialization */
 
 	XMLNode&         get_state ();
@@ -459,6 +464,8 @@ private:
 	void register_properties ();
 
 	void use_sources (SourceList const &);
+
+	std::string             _tags;
 };
 
 } /* namespace ARDOUR */
