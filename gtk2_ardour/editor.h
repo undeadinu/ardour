@@ -1465,6 +1465,8 @@ private:
 	void toggle_skip_playback ();
 
 	void remove_last_capture ();
+	void tag_last_capture ();
+
 	void select_all_selectables_using_time_selection ();
 	void select_all_selectables_using_loop();
 	void select_all_selectables_using_punch();
