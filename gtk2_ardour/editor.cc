@@ -4326,6 +4326,13 @@ Editor::audio_region_selection_covers (samplepos_t where)
 }
 
 void
+Editor::cleanup_regions ()
+{
+	_regions->remove_unused_regions();
+}
+
+
+void
 Editor::prepare_for_cleanup ()
 {
 	cut_buffer->clear_regions ();
