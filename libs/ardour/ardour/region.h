@@ -67,6 +67,7 @@ namespace Properties {
 	LIBARDOUR_API extern PBD::PropertyDescriptor<float>             shift;
 	LIBARDOUR_API extern PBD::PropertyDescriptor<PositionLockStyle> position_lock_style;
 	LIBARDOUR_API extern PBD::PropertyDescriptor<uint64_t>          layering_index;
+	LIBARDOUR_API extern PBD::PropertyDescriptor<std::string>		tags;
 };
 
 class Playlist;
@@ -283,8 +284,14 @@ public:
 
 	/* tags */
 
-	void          set_tags (std::string t) {_tags = t;}
-	std::string   tags () const;
+	std::string tags()    const { return _tags; }
+	virtual bool set_tags (const std::string& str) {
+		if (_tags != str) {
+			_tags = str;
+			PropertyChanged (PBD::PropertyChange (Properties::tags));
+		}
+		return true;
+	}
 
 	/* serialization */
 
@@ -455,6 +462,7 @@ private:
 	PBD::Property<float>       _shift;
 	PBD::EnumProperty<PositionLockStyle> _position_lock_style;
 	PBD::Property<uint64_t>    _layering_index;
+	PBD::Property<std::string> _tags;
 
 	samplecnt_t              _last_length;
 	samplepos_t              _last_position;
@@ -464,8 +472,6 @@ private:
 	void register_properties ();
 
 	void use_sources (SourceList const &);
-
-	std::string             _tags;
 };
 
 } /* namespace ARDOUR */

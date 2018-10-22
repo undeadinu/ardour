@@ -75,6 +75,7 @@ namespace ARDOUR {
 		PBD::PropertyDescriptor<float> shift;
 		PBD::PropertyDescriptor<PositionLockStyle> position_lock_style;
 		PBD::PropertyDescriptor<uint64_t> layering_index;
+		PBD::PropertyDescriptor<std::string> tags;
 	}
 }
 
@@ -135,6 +136,8 @@ Region::make_property_quarks ()
 	DEBUG_TRACE (DEBUG::Properties, string_compose ("quark for position_lock_style = %1\n",		Properties::position_lock_style.property_id));
 	Properties::layering_index.property_id = g_quark_from_static_string (X_("layering-index"));
 	DEBUG_TRACE (DEBUG::Properties, string_compose ("quark for layering_index = %1\n",	Properties::layering_index.property_id));
+	Properties::tags.property_id = g_quark_from_static_string (X_("tags"));
+	DEBUG_TRACE (DEBUG::Properties, string_compose ("quark for name = %1\n", 	Properties::tags.property_id));
 }
 
 void
@@ -167,6 +170,7 @@ Region::register_properties ()
 	add_property (_shift);
 	add_property (_position_lock_style);
 	add_property (_layering_index);
+	add_property (_tags);
 }
 
 #define REGION_DEFAULT_STATE(s,l) \
@@ -199,7 +203,8 @@ Region::register_properties ()
 	, _stretch (Properties::stretch, 1.0) \
 	, _shift (Properties::shift, 1.0) \
 	, _position_lock_style (Properties::position_lock_style, _type == DataType::AUDIO ? AudioTime : MusicTime) \
-	, _layering_index (Properties::layering_index, 0)
+	, _layering_index (Properties::layering_index, 0) \
+	, _tags (Properties::tags, "")
 
 #define REGION_COPY_STATE(other) \
 	  _sync_marked (Properties::sync_marked, other->_sync_marked) \
@@ -233,7 +238,8 @@ Region::register_properties ()
 	, _stretch (Properties::stretch, other->_stretch)	\
 	, _shift (Properties::shift, other->_shift)		\
 	, _position_lock_style (Properties::position_lock_style, other->_position_lock_style) \
-	, _layering_index (Properties::layering_index, other->_layering_index)
+	, _layering_index (Properties::layering_index, other->_layering_index) \
+	, _tags (Properties::tags, other->_tags)
 
 /* derived-from-derived constructor (no sources in constructor) */
 Region::Region (Session& s, samplepos_t start, samplecnt_t length, const string& name, DataType type)
@@ -1974,20 +1980,5 @@ Region::latest_possible_sample () const
 	 */
 
 	return _position + (minlen - _start) - 1;
-}
-
-
-struct SortByTag {
-	bool operator() (std::string a, std::string b) {
-		return a.compare (b) < 0;
-	}
-};
-
-std::string
-Region::tags () const
-{
-	std::string t = _tags;
-
-	return t;
 }
 
