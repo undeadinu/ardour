@@ -125,10 +125,17 @@ private:
 	bool selection_filter (const Glib::RefPtr<Gtk::TreeModel>& model, const Gtk::TreeModel::Path& path, bool yn);
 
 	Gtk::Widget* old_focus;
+
 	Gtk::CellEditable* name_editable;
 	void name_editing_started (Gtk::CellEditable*, const Glib::ustring&);
-
 	void name_edit (const std::string&, const std::string&);
+
+
+	Gtk::CellEditable* tags_editable;
+	void tag_editing_started (Gtk::CellEditable*, const Glib::ustring&);
+	void tag_edit (const std::string&, const std::string&);
+
+
 	void locked_changed (std::string const &);
 	void glued_changed (std::string const &);
 	void muted_changed (std::string const &);

@@ -79,6 +79,7 @@ EditorRegions::EditorRegions (Editor* e)
 	: EditorComponent (e)
 	, old_focus (0)
 	, name_editable (0)
+	, tags_editable (0)
 	, _menu (0)
 	, _no_redisplay (false)
 {
@@ -211,17 +212,24 @@ EditorRegions::EditorRegions (Editor* e)
 	/* show path as the row tooltip */
 	_display.set_tooltip_column (12); /* path */
 
-	//Region Name:  editable;  and color turns red if source is missing.
+	//Name cell: make  editable
 	CellRendererText* region_name_cell = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (0));
 	region_name_cell->property_editable() = true;
 	region_name_cell->signal_edited().connect (sigc::mem_fun (*this, &EditorRegions::name_edit));
 	region_name_cell->signal_editing_started().connect (sigc::mem_fun (*this, &EditorRegions::name_editing_started));
 
+	//Region Name:  color turns red if source is missing.
 	TreeViewColumn* tv_col = _display.get_column(0);
 	CellRendererText* renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (0));
 	tv_col->add_attribute(renderer->property_text(), _columns.name);
 	tv_col->add_attribute(renderer->property_foreground_gdk(), _columns.color_);
 	tv_col->set_expand (true);
+
+	//Tags cell: make editable
+	CellRendererText* region_tags_cell = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (1));
+	region_tags_cell->property_editable() = true;
+	region_tags_cell->signal_edited().connect (sigc::mem_fun (*this, &EditorRegions::tag_edit));
+	region_tags_cell->signal_editing_started().connect (sigc::mem_fun (*this, &EditorRegions::tag_editing_started));
 
 	CellRendererToggle* locked_cell = dynamic_cast<CellRendererToggle*> (_display.get_column_cell_renderer (3));
 	locked_cell->property_activatable() = true;
@@ -285,6 +293,7 @@ EditorRegions::focus_in (GdkEventFocus*)
 	}
 
 	name_editable = 0;
+	tags_editable = 0;
 
 	/* try to do nothing on focus in (doesn't work, hence selection_count nonsense) */
 	return true;
@@ -299,6 +308,7 @@ EditorRegions::focus_out (GdkEventFocus*)
 	}
 
 	name_editable = 0;
+	tags_editable = 0;
 
 	return false;
 }
@@ -306,7 +316,7 @@ EditorRegions::focus_out (GdkEventFocus*)
 bool
 EditorRegions::enter_notify (GdkEventCrossing*)
 {
-	if (name_editable) {
+	if (name_editable || tags_editable) {
 		return true;
 	}
 
@@ -685,7 +695,7 @@ EditorRegions::populate_row (boost::shared_ptr<Region> region, TreeModel::Row co
 	if (all) {
 		populate_row_source (region, row);
 	}
-	if (all || what_changed.contains (Properties::name)) {
+	if (all || what_changed.contains (Properties::name) || what_changed.contains (Properties::tags)) {
 		populate_row_name (region, row);
 	}
 }
@@ -833,6 +843,8 @@ EditorRegions::populate_row_name (boost::shared_ptr<Region> region, TreeModel::R
 	} else {
 		row[_columns.name] = Gtkmm2ext::markup_escape_text (region->name());
 	}
+
+	row[_columns.tags] = region->tags();
 }
 
 void
@@ -843,8 +855,6 @@ EditorRegions::populate_row_source (boost::shared_ptr<Region> region, TreeModel:
 	} else {
 		row[_columns.path] = Gtkmm2ext::markup_escape_text (region->source()->name());
 	}
-
-	row[_columns.tags] = region->tags();
 }
 
 void
@@ -875,6 +885,11 @@ EditorRegions::key_press (GdkEventKey* ev)
 		if (name_editable) {
 			name_editable->editing_done ();
 			name_editable = 0;
+		}
+
+		if (tags_editable) {
+			tags_editable->editing_done ();
+			tags_editable = 0;
 		}
 
 		col = _display.get_column (0); // select&focus on name column
@@ -1044,17 +1059,53 @@ EditorRegions::name_edit (const std::string& path, const std::string& new_text)
 		(*row_iter)[_columns.name] = new_text;
 	}
 
-	/* now mapover everything */
-
 	if (region) {
-		vector<RegionView*> equivalents;
-		_editor->get_regions_corresponding_to (region, equivalents, false);
 
-		for (vector<RegionView*>::iterator i = equivalents.begin(); i != equivalents.end(); ++i) {
-			if (new_text != (*i)->region()->name()) {
-				(*i)->region()->set_name (new_text);
+		region->set_name (new_text);
+
+		populate_row_name (region, (*row_iter));
+	}
+}
+
+
+void
+EditorRegions::tag_editing_started (CellEditable* ce, const Glib::ustring& path)
+{
+	tags_editable = ce;
+
+	/* give it a special name */
+
+	Gtk::Entry *e = dynamic_cast<Gtk::Entry*> (ce);
+
+	if (e) {
+		e->set_name (X_("RegionTagEditorEntry"));
+
+		TreeIter iter;
+		if ((iter = _model->get_iter (path))) {
+			boost::shared_ptr<Region> region = (*iter)[_columns.region];
+
+			if(region) {
+				e->set_text(region->tags());
 			}
 		}
+	}
+}
+
+void
+EditorRegions::tag_edit (const std::string& path, const std::string& new_text)
+{
+	tags_editable = 0;
+
+	boost::shared_ptr<Region> region;
+	TreeIter row_iter;
+
+	if ((row_iter = _model->get_iter (path))) {
+		region = (*row_iter)[_columns.region];
+		(*row_iter)[_columns.tags] = new_text;
+	}
+
+	if (region) {
+		region->set_tags (new_text);
 
 		populate_row_name (region, (*row_iter));
 	}
