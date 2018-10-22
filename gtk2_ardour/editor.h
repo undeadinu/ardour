@@ -392,6 +392,8 @@ public:
 
 	void select_topmost_track ();
 
+	void cleanup_regions ();
+
 	void prepare_for_cleanup ();
 	void finish_cleanup ();
 
