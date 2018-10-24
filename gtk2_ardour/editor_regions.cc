@@ -860,17 +860,9 @@ EditorRegions::populate_row_source (boost::shared_ptr<Region> region, TreeModel:
 void
 EditorRegions::show_context_menu (int button, int time)
 {
-	if (_menu == 0) {
-		_menu = dynamic_cast<Menu*> (ActionManager::get_widget ("/RegionListMenu"));
-	}
-
-	if (_display.get_selection()->count_selected_rows() > 0) {
-		ActionManager::set_sensitive (ActionManager::region_list_selection_sensitive_actions, true);
-	} else {
-		ActionManager::set_sensitive (ActionManager::region_list_selection_sensitive_actions, false);
-	}
-
-	_menu->popup (button, time);
+	using namespace Gtk::Menu_Helpers;
+	Gtk::Menu* menu = dynamic_cast<Menu*> (ActionManager::get_widget (X_("/PopupRegionMenu")));
+	menu->popup (button, time);
 }
 
 bool
