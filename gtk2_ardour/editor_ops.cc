@@ -5119,12 +5119,8 @@ Editor::remove_last_capture ()
 }
 
 void
-Editor::tag_last_capture ()
+Editor::tag_regions (RegionList regions)
 {
-	if (!_session) {
-		return;
-	}
-
 	ArdourDialog d (_("Tag Last Capture"), true, false);
 	Entry entry;
 	Label label (_("Tag:"));
@@ -5161,26 +5157,54 @@ Editor::tag_last_capture ()
 
 	std::string tagstr = entry.get_text();
 	strip_whitespace_edges (tagstr);
-
+	
 	if (!tagstr.empty()) {
-
-		std::list<boost::shared_ptr<Source> > srcs;
-		_session->get_last_capture_sources (srcs);
-		for (std::list<boost::shared_ptr<Source> >::iterator i = srcs.begin(); i != srcs.end(); ++i) {
-			boost::shared_ptr<ARDOUR::Source> source = (*i);
-			if (source) {
-
-				set<boost::shared_ptr<Region> > regions;
-				RegionFactory::get_regions_using_source (source, regions);
-
-				for (set<boost::shared_ptr<Region> >::iterator r = regions.begin(); r != regions.end(); r++) {
-					(*r)->set_tags(tagstr);
-				}
-			}
+		for (RegionList::iterator r = regions.begin(); r != regions.end(); r++) {
+			(*r)->set_tags(tagstr);
 		}
+			
 		_regions->redisplay ();
 	}
+}
+
+void
+Editor::tag_selected_region ()
+{
+	std::list<boost::shared_ptr<Region> > rlist;
+
+	RegionSelection rs = get_regions_from_selection_and_entered ();
+	for (RegionSelection::iterator r = rs.begin(); r != rs.end(); r++) {
+		rlist.push_back((*r)->region());
+	}
+
+	tag_regions(rlist);
+}
+
+void
+Editor::tag_last_capture ()
+{
+	if (!_session) {
+		return;
+	}
+
+	std::list<boost::shared_ptr<Region> > rlist;
+
+	std::list<boost::shared_ptr<Source> > srcs;
+	_session->get_last_capture_sources (srcs);
+	for (std::list<boost::shared_ptr<Source> >::iterator i = srcs.begin(); i != srcs.end(); ++i) {
+		boost::shared_ptr<ARDOUR::Source> source = (*i);
+		if (source) {
+
+			set<boost::shared_ptr<Region> > regions;
+			RegionFactory::get_regions_using_source (source, regions);
+			for (set<boost::shared_ptr<Region> >::iterator r = regions.begin(); r != regions.end(); r++) {
+				rlist.push_back(*r);
+			}
+
+		}
+	}
 	
+	tag_regions(rlist);
 }
 
 void
