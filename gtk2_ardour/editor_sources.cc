@@ -163,7 +163,7 @@ EditorSources::EditorSources (Editor* e)
 	nat_col->set_alignment (ALIGN_RIGHT);
 	renderer = dynamic_cast<CellRendererText*>(_display.get_column_cell_renderer (2));
 	if (renderer) {
-		renderer->property_xalign() = ( ALIGN_RIGHT );
+		renderer->property_xalign() = ( 1.0 );
 	}
 
 	//the PATH field should expand when the pane is opened wider
