@@ -178,13 +178,13 @@ EditorSources::EditorSources (Editor* e)
 
 	/* setup DnD handling */
 
-	list<TargetEntry> region_list_target_table;
+	list<TargetEntry> source_list_target_table;
 
-	region_list_target_table.push_back (TargetEntry ("text/plain"));
-	region_list_target_table.push_back (TargetEntry ("text/uri-list"));
-	region_list_target_table.push_back (TargetEntry ("application/x-rootwin-drop"));
+	source_list_target_table.push_back (TargetEntry ("text/plain"));
+	source_list_target_table.push_back (TargetEntry ("text/uri-list"));
+	source_list_target_table.push_back (TargetEntry ("application/x-rootwin-drop"));
 
-	_display.add_drop_targets (region_list_target_table);
+	_display.add_drop_targets (source_list_target_table);
 	_display.signal_drag_data_received().connect (sigc::mem_fun(*this, &EditorSources::drag_data_received));
 
 	_scroller.add (_display);
