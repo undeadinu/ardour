@@ -249,9 +249,7 @@ Editor::initialize_canvas ()
 
 	vector<TargetEntry> target_table;
 
-	// Drag-N-Drop from the region list can generate this target
-	target_table.push_back (TargetEntry ("regions"));
-
+	target_table.push_back (TargetEntry ("regions")); // DnD from the region or source lists will generate this target
 	target_table.push_back (TargetEntry ("text/plain"));
 	target_table.push_back (TargetEntry ("text/uri-list"));
 	target_table.push_back (TargetEntry ("application/x-rootwin-drop"));
