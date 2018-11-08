@@ -249,7 +249,8 @@ Editor::initialize_canvas ()
 
 	vector<TargetEntry> target_table;
 
-	target_table.push_back (TargetEntry ("regions")); // DnD from the region or source lists will generate this target
+	target_table.push_back (TargetEntry ("regions")); // DnD from the region list will generate this target
+	target_table.push_back (TargetEntry ("sources")); // DnD from the source list will generate this target
 	target_table.push_back (TargetEntry ("text/plain"));
 	target_table.push_back (TargetEntry ("text/uri-list"));
 	target_table.push_back (TargetEntry ("application/x-rootwin-drop"));
@@ -371,9 +372,10 @@ Editor::track_canvas_drag_data_received (const RefPtr<Gdk::DragContext>& context
 					 const SelectionData& data,
 					 guint info, guint time)
 {
-printf("Paul:  DROP:  track_canvas_drag_data_received\n");
-	if (data.get_target() == "regions") {
-		drop_regions (context, x, y, data, info, time);
+	if (data.get_target() == X_("regions")) {
+		drop_regions (context, x, y, data, info, time, true);
+	} else if (data.get_target() == X_("sources")) {
+		drop_regions (context, x, y, data, info, time, false);
 	} else {
 		drop_paths (context, x, y, data, info, time);
 	}

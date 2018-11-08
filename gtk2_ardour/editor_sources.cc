@@ -173,7 +173,7 @@ EditorSources::EditorSources (Editor* e)
 	tv_col->set_expand (true);
 
 	_display.get_selection()->set_mode (SELECTION_MULTIPLE);
-	_display.add_object_drag (_columns.source.index(), "regions");
+	_display.add_object_drag (_columns.source.index(), "sources");
 	_display.set_drag_column (_columns.name.index());
 
 	/* setup DnD handling */
