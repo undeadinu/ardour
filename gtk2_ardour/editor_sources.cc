@@ -375,34 +375,6 @@ EditorSources::add_source (boost::shared_ptr<ARDOUR::Source> source)
 	populate_row (row, source);
 }
 
-
-void
-EditorSources::remove_unused_regions ()
-{
-/*	vector<string> choices;
-	string prompt;
-
-	if (!_session) {
-		return;
-	}
-
-	prompt = _("Do you really want to remove unused regions?"
-	           "\n(This is destructive and cannot be undone)");
-
-	choices.push_back (_("No, do nothing."));
-	choices.push_back (_("Yes, remove."));
-
-	ArdourWidgets::Choice prompter (_("Remove unused regions"), prompt, choices);
-
-	if (prompter.run () == 1) {
-		_no_redisplay = true;
-		_session->cleanup_regions ();
-		_no_redisplay = false;
-		redisplay ();
-	}
-*/
-}
-
 void
 EditorSources::source_changed (boost::shared_ptr<ARDOUR::Source> source)
 {
@@ -738,10 +710,4 @@ EditorSources::set_state (const XMLNode & node)
 {
 	bool changed = false;
 
-}
-
-RefPtr<Action>
-EditorSources::remove_unused_regions_action () const
-{
-	return ActionManager::get_action (X_("SourcesList"), X_("removeUnusedRegions"));
 }
