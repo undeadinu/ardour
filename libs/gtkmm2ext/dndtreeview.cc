@@ -29,6 +29,8 @@ using namespace Gtk;
 using namespace Glib;
 using namespace Gtkmm2ext;
 
+DnDTreeViewBase::DragData DnDTreeViewBase::drag_data;
+
 DnDTreeViewBase::DnDTreeViewBase ()
 	: TreeView ()
 	, _drag_column (-1)

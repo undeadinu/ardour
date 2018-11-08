@@ -91,7 +91,7 @@ class LIBGTKMM2EXT_API DnDTreeViewBase : public Gtk::TreeView
 	    std::string    object_type;
 	};
 
-	DragData drag_data;
+	static DragData drag_data;
 
 	void start_object_drag () {
 		drag_data.source = this;
