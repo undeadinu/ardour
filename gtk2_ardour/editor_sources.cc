@@ -365,8 +365,13 @@ EditorSources::add_source (boost::shared_ptr<ARDOUR::Source> source)
 		return;
 	}
 
-	TreeModel::Row row = *(_model->append());
+	boost::shared_ptr<FileSource> fs = boost::dynamic_pointer_cast<FileSource> (source);
 
+	if (!fs || fs->empty()) {
+		return;
+	}
+
+	TreeModel::Row row = *(_model->append());
 	populate_row (row, source);
 }
 
