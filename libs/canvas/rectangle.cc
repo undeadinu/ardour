@@ -130,6 +130,8 @@ Rectangle::render (Rect const & area, Cairo::RefPtr<Cairo::Context> context) con
 
 		context->stroke ();
 	}
+
+	render_children (area, context);
 }
 
 void
