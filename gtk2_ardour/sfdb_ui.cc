@@ -338,7 +338,7 @@ SoundFileBox::setup_labels (const string& filename)
 					channels_value.set_text (to_string(ms->num_tracks()));
 				}
 			}
-			length_clock.set (ms->length(ms->timeline_position()));
+			length_clock.set (ms->length(ms->natural_position()));
 			switch (ms->num_tempos()) {
 			case 0:
 				tempomap_value.set_text (_("No tempo data"));
@@ -493,7 +493,7 @@ SoundFileBox::audition ()
 		PropertyList plist;
 
 		plist.add (ARDOUR::Properties::start, 0);
-		plist.add (ARDOUR::Properties::length, ms->length(ms->timeline_position()));
+		plist.add (ARDOUR::Properties::length, ms->length(ms->natural_position()));
 		plist.add (ARDOUR::Properties::name, rname);
 		plist.add (ARDOUR::Properties::layer, 0);
 
@@ -542,7 +542,7 @@ SoundFileBox::audition ()
 		PropertyList plist;
 
 		plist.add (ARDOUR::Properties::start, 0);
-		plist.add (ARDOUR::Properties::length, srclist[0]->length(srclist[0]->timeline_position()));
+		plist.add (ARDOUR::Properties::length, srclist[0]->length(srclist[0]->natural_position()));
 		plist.add (ARDOUR::Properties::name, rname);
 		plist.add (ARDOUR::Properties::layer, 0);
 
