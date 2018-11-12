@@ -328,7 +328,7 @@ void
 DiskWriter::non_realtime_locate (samplepos_t position)
 {
 	if (_midi_write_source) {
-		_midi_write_source->set_timeline_position (position);
+		_midi_write_source->set_natural_position (position);
 	}
 
 	DiskIOProcessor::non_realtime_locate (position);
@@ -1258,7 +1258,7 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 
 		midi_srcs.push_back (_midi_write_source);
 
-		_midi_write_source->set_timeline_position (capture_info.front()->start);
+		_midi_write_source->set_natural_position (capture_info.front()->start);
 		_midi_write_source->set_captured_for (_name);
 
 		char buf[128];

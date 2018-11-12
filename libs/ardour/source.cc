@@ -59,7 +59,7 @@ Source::Source (Session& s, DataType type, const string& name, Flag flags)
 	: SessionObject(s, name)
 	, _type(type)
 	, _flags(flags)
-	, _timeline_position(0)
+	, _natural_position(0)
         , _use_count (0)
 	, _level (0)
 {
@@ -72,7 +72,7 @@ Source::Source (Session& s, const XMLNode& node)
 	: SessionObject(s, "unnamed source")
 	, _type(DataType::AUDIO)
 	, _flags (Flag (Writable|CanRename))
-	, _timeline_position(0)
+	, _natural_position(0)
         , _use_count (0)
 	, _level (0)
 {
@@ -114,8 +114,8 @@ Source::get_state ()
 		node->set_property ("timestamp", _timestamp);
 	}
 
-	if (_timeline_position != 0) {
-		node->set_property ("timeline-position", (int64_t)_timeline_position);
+	if (_natural_position != 0) {
+		node->set_property ("timeline-position", (int64_t)_natural_position);
 	}
 
 	return *node;
@@ -144,7 +144,7 @@ Source::set_state (const XMLNode& node, int version)
 
 	samplepos_t ts;
 	if (node.get_property ("timeline-position", ts)) {
-		_timeline_position = ts;
+		_natural_position = ts;
 	}
 
 	if (!node.get_property (X_("flags"), _flags)) {
@@ -282,9 +282,9 @@ Source::mark_for_remove ()
 }
 
 void
-Source::set_timeline_position (samplepos_t pos)
+Source::set_natural_position (samplepos_t pos)
 {
-	_timeline_position = pos;
+	_natural_position = pos;
 }
 
 void
