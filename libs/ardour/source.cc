@@ -115,7 +115,7 @@ Source::get_state ()
 	}
 
 	if (_natural_position != 0) {
-		node->set_property ("timeline-position", (int64_t)_natural_position);
+		node->set_property ("natural-position", (int64_t)_natural_position);
 	}
 
 	return *node;
@@ -143,14 +143,19 @@ Source::set_state (const XMLNode& node, int version)
 	}
 
 	samplepos_t ts;
-	if (node.get_property ("timeline-position", ts)) {
+	if (node.get_property ("natural-position", ts)) {
+		_natural_position = ts;
+	} else if (node.get_property ("timeline-position", ts)) {
+		/* some older versions of ardour might have stored this with
+		   this property name.
+		*/
 		_natural_position = ts;
 	}
 
 	if (!node.get_property (X_("flags"), _flags)) {
 		_flags = Flag (0);
 	}
-	
+
 	if (!node.get_property (X_("take-id"), _take_id)) {
 		_take_id = "";
 	}
@@ -341,4 +346,3 @@ Source::writable () const
 {
         return (_flags & Writable) && _session.writable();
 }
-
