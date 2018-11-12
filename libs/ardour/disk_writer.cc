@@ -1227,6 +1227,8 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 		if (_midi_write_source) {
 			midi_srcs.push_back (_midi_write_source);
 		}
+
+		(*chan)->write_source->stamp (twhen);
 	}
 
 
