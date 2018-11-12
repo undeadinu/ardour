@@ -111,7 +111,8 @@ Source::get_state ()
 	node->set_property ("id", id());
 
 	if (_timestamp != 0) {
-		node->set_property ("timestamp", _timestamp);
+		int64_t t = _timestamp;
+		node->set_property ("timestamp", t);
 	}
 
 	if (_natural_position != 0) {
@@ -137,9 +138,9 @@ Source::set_state (const XMLNode& node, int version)
 
 	node.get_property ("type", _type);
 
-	time_t t;
+	int64_t t;
 	if (node.get_property ("timestamp", t)) {
-		_timestamp = t;
+		_timestamp = (time_t) t;
 	}
 
 	samplepos_t ts;
