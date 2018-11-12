@@ -111,7 +111,11 @@ Source::get_state ()
 	node->set_property ("id", id());
 
 	if (_timestamp != 0) {
-		node->set_property ("timestamp", (int64_t)_timestamp);
+		node->set_property ("timestamp", _timestamp);
+	}
+
+	if (_timeline_position != 0) {
+		node->set_property ("timeline-position", (int64_t)_timeline_position);
 	}
 
 	return *node;
@@ -133,9 +137,14 @@ Source::set_state (const XMLNode& node, int version)
 
 	node.get_property ("type", _type);
 
-	int64_t t;
+	time_t t;
 	if (node.get_property ("timestamp", t)) {
 		_timestamp = t;
+	}
+
+	samplepos_t ts;
+	if (node.get_property ("timeline-position", ts)) {
+		_timeline_position = ts;
 	}
 
 	if (!node.get_property (X_("flags"), _flags)) {
