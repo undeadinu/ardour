@@ -104,6 +104,7 @@ class LIBARDOUR_API Source : public SessionObject,
 
 	virtual samplepos_t natural_position() const { return _natural_position; }
 	virtual void set_natural_position (samplepos_t pos);
+	bool have_natural_position() const { return _have_natural_position; }
 
 	void set_allow_remove_if_empty (bool yn);
 
@@ -127,6 +128,7 @@ class LIBARDOUR_API Source : public SessionObject,
 	time_t              _timestamp;
 	std::string         _take_id;
 	samplepos_t          _natural_position;
+	samplepos_t          _have_natural_position;
 	bool                _analysed;
         mutable Glib::Threads::Mutex _lock;
         mutable Glib::Threads::Mutex _analysis_lock;
