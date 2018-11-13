@@ -1214,9 +1214,7 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 			char buf[128];
 			strftime (buf, sizeof(buf), "%F %H.%M.%S", &when);
 			as->set_take_id ( buf );
-			
-			Source::SourcePropertyChanged(as);
-			
+
 			if (Config->get_auto_analyse_audio()) {
 				Analyser::queue_source_for_analysis (as, true);
 			}
@@ -1229,6 +1227,9 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 		}
 
 		(*chan)->write_source->stamp (twhen);
+
+		/* "re-announce the source to the world */
+		Source::SourcePropertyChanged ((*chan)->write_source);
 	}
 
 
