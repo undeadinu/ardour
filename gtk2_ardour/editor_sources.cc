@@ -380,12 +380,19 @@ EditorSources::source_changed (boost::shared_ptr<ARDOUR::Source> source)
 {
 	TreeModel::iterator i;
 	TreeModel::Children rows = _model->children();
+	bool found = false;
+
 	for (i = rows.begin(); i != rows.end(); ++i) {
 		boost::shared_ptr<ARDOUR::Source> ss = (*i)[_columns.source];
 		if (source == ss) {
 			populate_row(*i, source);
+			found = true;
 			break;
 		}
+	}
+
+	if (!found) {
+		add_source (source);
 	}
 }
 
