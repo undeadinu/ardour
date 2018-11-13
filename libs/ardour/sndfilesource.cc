@@ -443,10 +443,17 @@ SndFileSource::open ()
 		header_position_offset = _natural_position;
 	}
 
-	/* Set our timeline position to either the time reference from a BWF header or the current
-	   start of the session.
-	*/
-	set_natural_position (bwf_info_exists ? _broadcast_info->get_time_reference() : header_position_offset);
+	if (destructive()) {
+		/* Set our timeline position to either the time reference from a BWF header or the current
+		   start of the session.
+		*/
+		set_natural_position (bwf_info_exists ? _broadcast_info->get_time_reference() : header_position_offset);
+	} else {
+		/* If a BWF header exists, set our _natural_position from it */
+		if (bwf_info_exists) {
+			set_natural_position (_broadcast_info->get_time_reference());
+		}
+	}
 
 	if (_length != 0 && !bwf_info_exists) {
 		delete _broadcast_info;
@@ -1134,4 +1141,3 @@ SndFileSource::set_path (const string& p)
 {
         FileSource::set_path (p);
 }
-
