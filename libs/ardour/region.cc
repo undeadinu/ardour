@@ -1548,6 +1548,7 @@ Region::set_master_sources (const SourceList& srcs)
 
 	for (SourceList::const_iterator i = _master_sources.begin (); i != _master_sources.end(); ++i) {
 		(*i)->inc_use_count ();
+//		Source::SourcePropertyChanged( *i );
 	}
 }
 

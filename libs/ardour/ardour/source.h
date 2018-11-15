@@ -25,6 +25,8 @@
 
 #include <glibmm/threads.h>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/utility.hpp>
 #include "pbd/statefuldestructible.h"
 
@@ -36,7 +38,8 @@ namespace ARDOUR {
 
 class Session;
 
-class LIBARDOUR_API Source : public SessionObject
+class LIBARDOUR_API Source : public SessionObject,
+		public boost::enable_shared_from_this<ARDOUR::Source>
 {
   public:
 	enum Flag {
@@ -117,6 +120,8 @@ class LIBARDOUR_API Source : public SessionObject
 
 	std::string ancestor_name() { return _ancestor_name.empty() ? name() : _ancestor_name; }
 	void set_ancestor_name(const std::string& name) { _ancestor_name = name; }
+
+	static PBD::Signal1<void,boost::shared_ptr<ARDOUR::Source> > SourcePropertyChanged;
 
   protected:
 	DataType            _type;

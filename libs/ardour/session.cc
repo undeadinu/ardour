@@ -4719,6 +4719,7 @@ Session::destroy_sources (list<boost::shared_ptr<Source> > srcs)
 
 		(*s)->mark_for_remove ();
 		(*s)->drop_references ();
+		SourceRemoved(*s);
 
 		s = srcs.erase (s);
 	}
@@ -4792,6 +4793,8 @@ Session::add_source (boost::shared_ptr<Source> source)
 		}
 
 		source->DropReferences.connect_same_thread (*this, boost::bind (&Session::remove_source, this, boost::weak_ptr<Source> (source)));
+
+		SourceAdded(source);
 	}
 }
 
@@ -4814,6 +4817,7 @@ Session::remove_source (boost::weak_ptr<Source> src)
 
 		if ((i = sources.find (source->id())) != sources.end()) {
 			sources.erase (i);
+			SourceRemoved(source);
 		}
 	}
 
