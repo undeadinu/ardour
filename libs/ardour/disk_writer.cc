@@ -328,7 +328,7 @@ void
 DiskWriter::non_realtime_locate (samplepos_t position)
 {
 	if (_midi_write_source) {
-		_midi_write_source->set_timeline_position (position);
+		_midi_write_source->set_natural_position (position);
 	}
 
 	DiskIOProcessor::non_realtime_locate (position);
@@ -1214,9 +1214,7 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 			char buf[128];
 			strftime (buf, sizeof(buf), "%F %H.%M.%S", &when);
 			as->set_take_id ( buf );
-			
-			Source::SourcePropertyChanged(as);
-			
+
 			if (Config->get_auto_analyse_audio()) {
 				Analyser::queue_source_for_analysis (as, true);
 			}
@@ -1227,6 +1225,11 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 		if (_midi_write_source) {
 			midi_srcs.push_back (_midi_write_source);
 		}
+
+		(*chan)->write_source->stamp (twhen);
+
+		/* "re-announce the source to the world */
+		Source::SourcePropertyChanged ((*chan)->write_source);
 	}
 
 
@@ -1256,7 +1259,7 @@ DiskWriter::transport_stopped_wallclock (struct tm& when, time_t twhen, bool abo
 
 		midi_srcs.push_back (_midi_write_source);
 
-		_midi_write_source->set_timeline_position (capture_info.front()->start);
+		_midi_write_source->set_natural_position (capture_info.front()->start);
 		_midi_write_source->set_captured_for (_name);
 
 		char buf[128];

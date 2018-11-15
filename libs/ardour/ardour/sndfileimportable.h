@@ -38,8 +38,8 @@ class LIBARDOUR_API SndFileImportableSource : public ImportableSource {
 	samplecnt_t length() const;
 	samplecnt_t samplerate() const;
 	void       seek (samplepos_t pos);
-	samplepos_t natural_position() const;
 	bool       clamped_at_unity () const;
+	samplepos_t natural_position () const;
 
    protected:
 	SF_INFO sf_info;
