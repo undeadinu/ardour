@@ -40,28 +40,16 @@ public:
 
 	/** Normalize so ticks is within PPQN. */
 	void normalize() {
-		// First, fix negative ticks with positive beats
-		if (_beats >= 0) {
-			while (_ticks < 0) {
-				--_beats;
-				_ticks += PPQN;
+		if (_ticks < 0) {
+			_beats -= _ticks / PPQN;
+			if (_beats == 0) {
+				/* canonical representation is [ -1 . +tick_mod ] */
+				_beats = -1;
 			}
+			_ticks = PPQN + (_ticks % PPQN);
 		}
-
-		// Work with positive beats and ticks to normalize
-		const int32_t sign  = _beats < 0 ? -1 : 1;
-		int32_t       beats = abs(_beats);
-		int32_t       ticks = abs(_ticks);
-
-		// Fix ticks greater than 1 beat
-		while (ticks >= PPQN) {
-			++beats;
-			ticks -= PPQN;
-		}
-
-		// Set fields with appropriate sign
-		_beats = sign * beats;
-		_ticks = sign * ticks;
+		_beats += _ticks / PPQN;
+		_ticks %= PPQN;
 	}
 
 	/** Create from a precise BT time. */
