@@ -2004,7 +2004,8 @@ private:
 	        gint                                  y,
 	        const Gtk::SelectionData&             data,
 	        guint                                 info,
-	        guint                                 time);
+	        guint                                 time,
+	        bool                                  from_region_list);
 
 	void drop_routes (
 	        const Glib::RefPtr<Gdk::DragContext>& context,
