@@ -373,6 +373,7 @@ Editor::track_canvas_drag_data_received (const RefPtr<Gdk::DragContext>& context
 					 const SelectionData& data,
 					 guint info, guint time)
 {
+printf("DROP:  track_canvas_drag_data_received\n");
 	if (data.get_target() == "regions") {
 		drop_regions (context, x, y, data, info, time);
 	} else {
