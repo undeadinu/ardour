@@ -19,49 +19,46 @@
 
 #include <algorithm>
 
+#include "pbd/unwind.h"
+
 #include "canvas/box.h"
 #include "canvas/rectangle.h"
 
 using namespace ArdourCanvas;
 
 Box::Box (Canvas* canvas, Orientation o)
-	: Item (canvas)
+	: Rectangle (canvas)
 	, orientation (o)
 	, spacing (0)
 	, top_padding (0), right_padding (0), bottom_padding (0), left_padding (0)
 	, top_margin (0), right_margin (0), bottom_margin (0), left_margin (0)
 	, homogenous (false)
+	, ignore_child_changes (false)
 {
-	self = new Rectangle (this);
-	self->set_outline (false);
-	self->set_fill (false);
 }
 
 Box::Box (Item* parent, Orientation o)
-	: Item (parent)
+	: Rectangle (parent)
 	, orientation (o)
 	, spacing (0)
 	, top_padding (0), right_padding (0), bottom_padding (0), left_padding (0)
 	, top_margin (0), right_margin (0), bottom_margin (0), left_margin (0)
 	, homogenous (false)
+	, ignore_child_changes (false)
 {
-	self = new Rectangle (this);
-	self->set_outline (false);
-	self->set_fill (false);
 }
 
 
 Box::Box (Item* parent, Duple const & p, Orientation o)
-	: Item (parent, p)
+	: Rectangle (parent)
 	, orientation (o)
 	, spacing (0)
 	, top_padding (0), right_padding (0), bottom_padding (0), left_padding (0)
 	, top_margin (0), right_margin (0), bottom_margin (0), left_margin (0)
 	, homogenous (false)
+	, ignore_child_changes (false)
 {
-	self = new Rectangle (this);
-	self->set_outline (false);
-	self->set_fill (false);
+	set_position (p);
 }
 
 void
@@ -141,25 +138,6 @@ Box::set_margin (double t, double r, double b, double l)
 }
 
 void
-Box::reset_self ()
-{
-	if (_bounding_box_dirty) {
-		compute_bounding_box ();
-	}
-
-	if (!_bounding_box) {
-		self->hide ();
-		return;
-	}
-
-	Rect r (_bounding_box);
-
-	/* XXX need to shrink by margin */
-
-	self->set (r);
-}
-
-void
 Box::reposition_children ()
 {
 	Duple previous_edge (0, 0);
@@ -169,7 +147,7 @@ Box::reposition_children ()
 
 	if (homogenous) {
 
-		for (std::list<Item*>::iterator i = _items.begin(); ++i != _items.end(); ++i) {
+		for (std::list<Item*>::iterator i = _items.begin(); i != _items.end(); ++i) {
 			Rect bb = (*i)->bounding_box();
 			if (bb) {
 				largest_height = std::max (largest_height, bb.height());
@@ -180,59 +158,63 @@ Box::reposition_children ()
 		uniform_size = Rect (0, 0, largest_width, largest_height);
 	}
 
-	for (std::list<Item*>::iterator i = _items.begin(); ++i != _items.end(); ++i) {
+	{
 
-		(*i)->set_position (previous_edge);
+		PBD::Unwinder<bool> uw (ignore_child_changes, true);
 
-		if (homogenous) {
-			(*i)->size_allocate (uniform_size);
-		}
+		for (std::list<Item*>::iterator i = _items.begin(); i != _items.end(); ++i) {
 
-		if (orientation == Vertical) {
+			(*i)->set_position (previous_edge);
 
-			Distance shift = 0;
-
-			Rect bb = (*i)->bounding_box();
-
-			if (!(*i)->visible()) {
-				/* invisible child */
-				if (!collapse_on_hide) {
-					/* still add in its size */
-					if (bb) {
-						shift += bb.height();
-						}
-				}
-			} else {
-				if (bb) {
-					shift += bb.height();
-				}
+			if (homogenous) {
+				(*i)->size_allocate (uniform_size);
 			}
 
-			previous_edge = previous_edge.translate (Duple (0, spacing + shift));
+			if (orientation == Vertical) {
 
-		} else {
+				Distance shift = 0;
 
-			Distance shift = 0;
-			Rect bb = (*i)->bounding_box();
+				Rect bb = (*i)->bounding_box();
 
-			if (!(*i)->visible()) {
-				if (!collapse_on_hide) {
+				if (!(*i)->visible()) {
+					/* invisible child */
+					if (!collapse_on_hide) {
+						/* still add in its size */
+						if (bb) {
+							shift += bb.height();
+						}
+					}
+				} else {
+					if (bb) {
+						shift += bb.height();
+					}
+				}
+
+				previous_edge = previous_edge.translate (Duple (0, spacing + shift));
+
+			} else {
+
+				Distance shift = 0;
+				Rect bb = (*i)->bounding_box();
+
+				if (!(*i)->visible()) {
+					if (!collapse_on_hide) {
+						if (bb) {
+							shift += bb.width();
+						}
+					}
+				} else {
 					if (bb) {
 						shift += bb.width();
 					}
 				}
-			} else {
-				if (bb) {
-					shift += bb.width();
-				}
-			}
 
-			previous_edge = previous_edge.translate (Duple (spacing + shift, 0));
+				previous_edge = previous_edge.translate (Duple (spacing + shift, 0));
+			}
 		}
 	}
 
 	_bounding_box_dirty = true;
-	reset_self ();
 }
 
 void
@@ -268,6 +250,10 @@ void
 Box::child_changed ()
 {
 	/* catch visibility and size changes */
+
+	if (ignore_child_changes) {
+		return;
+	}
 
 	Item::child_changed ();
 	reposition_children ();
