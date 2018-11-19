@@ -435,6 +435,7 @@ GtkCanvas::GtkCanvas ()
 	, current_tooltip_item (0)
 	, tooltip_window (0)
 	, _in_dtor (false)
+	, resize_queued (false)
 	, _nsglview (0)
 {
 	/* these are the events we want to know about */
@@ -1447,6 +1448,23 @@ Glib::RefPtr<Pango::Context>
 GtkCanvas::get_pango_context ()
 {
 	return Glib::wrap (gdk_pango_context_get());
+}
+
+void
+GtkCanvas::queue_resize ()
+{
+	if (!resize_queued) {
+		Glib::signal_idle().connect (sigc::mem_fun (*this, &GtkCanvas::resize_handler));
+		resize_queued = true;
+	}
+}
+
+bool
+GtkCanvas::resize_handler ()
+{
+	resize_queued = false;
+	_root.layout ();
+	return false;
 }
 
 /** Create a GtkCanvaSViewport.

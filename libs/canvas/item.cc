@@ -41,6 +41,9 @@ Item::Item (Canvas* canvas)
 	, _visible (true)
 	, _bounding_box_dirty (true)
 	, _lut (0)
+	, _resize_queued (false)
+	, requested_width (-1)
+	, requested_height (-1)
 	, _ignore_events (false)
 {
 	DEBUG_TRACE (DEBUG::CanvasItems, string_compose ("new canvas item %1\n", this));
@@ -55,6 +58,9 @@ Item::Item (Item* parent)
 	, _visible (true)
 	, _bounding_box_dirty (true)
 	, _lut (0)
+	, _resize_queued (false)
+	, requested_width (-1)
+	, requested_height (-1)
 	, _ignore_events (false)
 {
 	DEBUG_TRACE (DEBUG::CanvasItems, string_compose ("new canvas item %1\n", this));
@@ -76,6 +82,7 @@ Item::Item (Item* parent, Duple const& p)
 	, _visible (true)
 	, _bounding_box_dirty (true)
 	, _lut (0)
+	, _resize_queued (false)
 	, _ignore_events (false)
 {
 	DEBUG_TRACE (DEBUG::CanvasItems, string_compose ("new canvas item %1\n", this));
@@ -281,6 +288,18 @@ Item::set_position (Duple p)
 			_parent->child_changed ();
 		}
 	}
+}
+
+void
+Item::layout()
+{
+	for (list<Item*>::iterator i = _items.begin(); i != _items.end(); ++i) {
+		if ((*i)->resize_queued()) {
+			(*i)->layout ();
+		}
+	}
+
+	_resize_queued = false;
 }
 
 void
@@ -574,6 +593,28 @@ Item::size_allocate (Rect const & r)
 {
 	_allocation = r;
 }
+
+void
+Item::size_request (double& w, double& h) const
+{
+	Rect r (bounding_box());
+
+	w = std::max (requested_width, r.width());
+	h = std::max (requested_height, r.height());
+}
+
+void
+Item::set_size_request (double w, double h)
+{
+	/* allow reset to zero or require that both are positive */
+
+	begin_change ();
+	requested_width = w;
+	requested_height = h;
+	_bounding_box_dirty = true;
+	end_change ();
+}
+
 
 /** @return Bounding box in this item's coordinates */
 ArdourCanvas::Rect
@@ -902,6 +943,20 @@ Item::add_child_bounding_boxes (bool include_hidden) const
 		_bounding_box = Rect ();
 	} else {
 		_bounding_box = bbox;
+	}
+}
+
+void
+Item::queue_resize()
+{
+	_resize_queued = true;
+
+	if (_parent) {
+		_parent->queue_resize ();
+	}
+
+	if (this == _canvas->root()) {
+		_canvas->queue_resize ();
 	}
 }
 

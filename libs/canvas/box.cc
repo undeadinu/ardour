@@ -64,6 +64,10 @@ Box::Box (Item* parent, Duple const & p, Orientation o)
 void
 Box::render (Rect const & area, Cairo::RefPtr<Cairo::Context> context) const
 {
+	if (_fill || _outline) {
+		Rectangle::render (area, context);
+	}
+
 	Item::render_children (area, context);
 }
 
@@ -82,10 +86,14 @@ Box::compute_bounding_box () const
 	if (_bounding_box) {
 		Rect r = _bounding_box;
 
-		_bounding_box = r.expand (top_padding + outline_width() + top_margin,
+		/* left and top margin and padding is already built into the
+		 * position of children
+		 */
+
+		_bounding_box = r.expand (0.0,
 		                          right_padding + outline_width() + right_margin,
 		                          bottom_padding + outline_width() + bottom_margin,
-		                          left_padding + outline_width() + left_margin);
+		                          0.0);
 	}
 
 	_bounding_box_dirty = false;
@@ -140,7 +148,7 @@ Box::set_margin (double t, double r, double b, double l)
 void
 Box::reposition_children ()
 {
-	Duple previous_edge (0, 0);
+	Duple previous_edge = Duple (left_margin+left_padding, top_margin+top_padding);
 	Distance largest_width = 0;
 	Distance largest_height = 0;
 	Rect uniform_size;
@@ -170,24 +178,23 @@ Box::reposition_children ()
 				(*i)->size_allocate (uniform_size);
 			}
 
+			double width;
+			double height;
+
+			(*i)->size_request (width, height);
+
 			if (orientation == Vertical) {
 
 				Distance shift = 0;
-
-				Rect bb = (*i)->bounding_box();
 
 				if (!(*i)->visible()) {
 					/* invisible child */
 					if (!collapse_on_hide) {
 						/* still add in its size */
-						if (bb) {
-							shift += bb.height();
-						}
+						shift += height;
 					}
 				} else {
-					if (bb) {
-						shift += bb.height();
-					}
+					shift += height;
 				}
 
 				previous_edge = previous_edge.translate (Duple (0, spacing + shift));
@@ -195,18 +202,13 @@ Box::reposition_children ()
 			} else {
 
 				Distance shift = 0;
-				Rect bb = (*i)->bounding_box();
 
 				if (!(*i)->visible()) {
 					if (!collapse_on_hide) {
-						if (bb) {
-							shift += bb.width();
-						}
+						shift += width;
 					}
 				} else {
-					if (bb) {
-						shift += bb.width();
-					}
+					shift += width;
 				}
 
 				previous_edge = previous_edge.translate (Duple (spacing + shift, 0));
@@ -218,32 +220,40 @@ Box::reposition_children ()
 }
 
 void
-Box::pack_end (Item* i, double extra_padding)
-{
-	if (!i) {
-		return;
-	}
-
-	/* prepend new child */
-	Item::add_front (i);
-	reposition_children ();
-}
-void
-Box::pack_start (Item* i, double extra_padding)
-{
-	if (!i) {
-		return;
-	}
-
-	/* append new child */
-	Item::add (i);
-	reposition_children ();
-}
-
-void
 Box::add (Item* i)
 {
-	pack_start (i);
+	if (!i) {
+		return;
+	}
+
+	Item::add (i);
+	queue_resize ();
+}
+
+void
+Box::add_front (Item* i)
+{
+	if (!i) {
+		return;
+	}
+
+	Item::add_front (i);
+	queue_resize ();
+}
+
+void
+Box::layout ()
+{
+	bool yes_do_it = _resize_queued;
+
+	Item::layout ();
+
+	if (yes_do_it) {
+		std::cerr << "box " << this << " reposition with " << _items.size() << std::endl;
+		reposition_children ();
+		compute_bounding_box ();
+		set (_bounding_box);
+	}
 }
 
 void
