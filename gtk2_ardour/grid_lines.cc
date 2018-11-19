@@ -67,11 +67,11 @@ GridLines::draw (std::vector<Ruler::Mark>     marks)
 		samplepos_t s = m->position;
 
 		if ((*m).style == ArdourCanvas::Ruler::Mark::Major) {
-			lines.add (PublicEditor::instance().sample_to_pixel_unrounded (s), 1.0, major_color);
+			lines.add_coord (PublicEditor::instance().sample_to_pixel_unrounded (s), 1.0, major_color);
 		} else if ((*m).style == ArdourCanvas::Ruler::Mark::Minor) {
-			lines.add (PublicEditor::instance().sample_to_pixel_unrounded (s), 1.0, minor_color);
+			lines.add_coord (PublicEditor::instance().sample_to_pixel_unrounded (s), 1.0, minor_color);
 		} else {
-			lines.add (PublicEditor::instance().sample_to_pixel_unrounded (s), 1.0, micro_color);
+			lines.add_coord (PublicEditor::instance().sample_to_pixel_unrounded (s), 1.0, micro_color);
 		}
 	}
 }
