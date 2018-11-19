@@ -209,8 +209,8 @@ public:
 	void* get_data (std::string const &) const;
 
 	/* nested item ("grouping") API */
-	void add (Item *);
-	void add_front (Item *);
+	virtual void add (Item *);
+	virtual void add_front (Item *);
 	void remove (Item *);
         void clear (bool with_delete = false);
 	std::list<Item*> const & items () const {
