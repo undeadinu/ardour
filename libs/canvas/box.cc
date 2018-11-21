@@ -249,7 +249,6 @@ Box::layout ()
 	Item::layout ();
 
 	if (yes_do_it) {
-		std::cerr << "box " << this << " reposition with " << _items.size() << std::endl;
 		reposition_children ();
 		compute_bounding_box ();
 		set (_bounding_box);
