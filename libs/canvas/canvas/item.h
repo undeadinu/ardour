@@ -143,11 +143,9 @@ public:
 
 	ScrollGroup* scroll_parent() const { return _scroll_parent; }
 
-	void size_request (double& w, double& h) const;
+	virtual void size_request (double& w, double& h) const;
 	void set_size_request (double w, double h);
 
-	/* item implementations can override this if they need to */
-	virtual Rect size_request() const { return bounding_box (true); }
 	void size_allocate (Rect const&);
 
 	/** bounding box is the public API to get the size of the item.
