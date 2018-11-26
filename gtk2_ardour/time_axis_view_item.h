@@ -163,7 +163,7 @@ protected:
 	virtual bool canvas_group_event (GdkEvent*);
 
 	virtual void set_colors();
-	virtual void set_sample_color();
+	virtual void set_frame_color();
 	virtual void set_sample_gradient ();
 	void set_trim_handle_colors();
 
@@ -218,16 +218,16 @@ protected:
 	bool high_enough_for_name;
 
 	ArdourCanvas::Container*      group;
-	ArdourCanvas::Rectangle* sample;
-	ArdourCanvas::Rectangle* selection_sample;
+	ArdourCanvas::Rectangle* frame;
+	ArdourCanvas::Rectangle* selection_frame;
 	ArdourCanvas::Text*      name_text;
 	ArdourCanvas::Rectangle* name_highlight;
 
-	/* with these two values, if sample_handle_start == 0 then sample_handle_end will also be 0 */
-	ArdourCanvas::Rectangle* sample_handle_start; ///< `sample' (fade) handle for the start of the item, or 0
-	ArdourCanvas::Rectangle* sample_handle_end; ///< `sample' (fade) handle for the end of the item, or 0
+	/* with these two values, if frame_handle_start == 0 then frame_handle_end will also be 0 */
+	ArdourCanvas::Rectangle* frame_handle_start; ///< `sample' (fade) handle for the start of the item, or 0
+	ArdourCanvas::Rectangle* frame_handle_end; ///< `sample' (fade) handle for the end of the item, or 0
 
-	bool sample_handle_crossing (GdkEvent*, ArdourCanvas::Rectangle*);
+	bool frame_handle_crossing (GdkEvent*, ArdourCanvas::Rectangle*);
 
 	double _height;
 	Visibility visibility;
