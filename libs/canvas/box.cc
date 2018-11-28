@@ -251,7 +251,13 @@ Box::layout ()
 	if (yes_do_it) {
 		reposition_children ();
 		compute_bounding_box ();
-		set (_bounding_box);
+
+		const double w = std::max (requested_width, _bounding_box.width());
+		const double h = std::max (requested_height, _bounding_box.height());
+
+		set (Rect (get().x0, get().y0, get().x0 + w, get().y0 + h));
+
+		std::cerr << name << " box layed out, reset to " << get() << std::endl;
 	}
 }
 
